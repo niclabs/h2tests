@@ -31,7 +31,7 @@
  */
 /**
  * \file
- *         border-router
+ *         slip-bridge
  * \author
  *         Niclas Finne <nfi@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
@@ -48,8 +48,8 @@
 #include "net/netstack.h"
 #include "dev/slip.h"
 #include "cmd.h"
-#include "border-router.h"
-#include "border-router-cmds.h"
+#include "slip-bridge.h"
+#include "slip-bridge-cmds.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -77,17 +77,17 @@ extern int contiki_argc;
 extern char **contiki_argv;
 extern const char *slip_config_ipaddr;
 
-CMD_HANDLERS(border_router_cmd_handler);
+CMD_HANDLERS(slip_bridge_cmd_handler);
 
-PROCESS(border_router_process, "Border router process");
+PROCESS(slip_bridge_process, "Border router process");
 
 #if WEBSERVER==0
 /* No webserver */
-AUTOSTART_PROCESSES(&border_router_process,&border_router_cmd_process);
+AUTOSTART_PROCESSES(&slip_bridge_process,&slip_bridge_cmd_process);
 #elif WEBSERVER>1
 /* Use an external webserver application */
 #include "webserver-nogui.h"
-AUTOSTART_PROCESSES(&border_router_process,&border_router_cmd_process,
+AUTOSTART_PROCESSES(&slip_bridge_process,&slip_bridge_cmd_process,
 		    &webserver_nogui_process);
 #else
 /* Use simple webserver with only one page */
@@ -106,7 +106,7 @@ PROCESS_THREAD(webserver_nogui_process, ev, data)
 
   PROCESS_END();
 }
-AUTOSTART_PROCESSES(&border_router_process,&border_router_cmd_process,
+AUTOSTART_PROCESSES(&slip_bridge_process,&slip_bridge_cmd_process,
 		    &webserver_nogui_process);
 
 static const char *TOP = "<html><head><title>ContikiRPL</title></head><body>\n";
@@ -240,7 +240,7 @@ request_mac(void)
 }
 /*---------------------------------------------------------------------------*/
 void
-border_router_set_mac(const uint8_t *data)
+slip_bridge_set_mac(const uint8_t *data)
 {
   memcpy(uip_lladdr.addr, data, sizeof(uip_lladdr.addr));
   linkaddr_set_node_addr((linkaddr_t *)uip_lladdr.addr);
@@ -256,7 +256,7 @@ border_router_set_mac(const uint8_t *data)
 }
 /*---------------------------------------------------------------------------*/
 void
-border_router_print_stat()
+slip_bridge_print_stat()
 {
   printf("bytes received over SLIP: %ld\n", slip_received);
   printf("bytes sent over SLIP: %ld\n", slip_sent);
@@ -266,7 +266,7 @@ border_router_print_stat()
 /* Format: <name=value>;<name=value>;...;<name=value>*/
 /* this function just cut at ; and store in the sensor array */
 void
-border_router_set_sensors(const char *data, int len)
+slip_bridge_set_sensors(const char *data, int len)
 {
   int i;
   int last_pos = 0;
@@ -306,7 +306,7 @@ set_prefix_64(const uip_ipaddr_t *prefix_64)
   }
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(border_router_process, ev, data)
+PROCESS_THREAD(slip_bridge_process, ev, data)
 {
   static struct etimer et;
 

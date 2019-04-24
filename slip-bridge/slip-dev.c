@@ -54,7 +54,7 @@
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "cmd.h"
-#include "border-router-cmds.h"
+#include "slip-bridge-cmds.h"
 
 extern int slip_config_verbose;
 extern int slip_config_flowcontrol;

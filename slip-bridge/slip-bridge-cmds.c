@@ -37,8 +37,8 @@
 
 #include "contiki.h"
 #include "cmd.h"
-#include "border-router.h"
-#include "border-router-cmds.h"
+#include "slip-bridge.h"
+#include "slip-bridge-cmds.h"
 #include "dev/serial-line.h"
 #include "net/rpl/rpl.h"
 #include "net/ip/uiplib.h"
@@ -54,13 +54,13 @@ void packet_sent(uint8_t sessionid, uint8_t status, uint8_t tx);
 void nbr_print_stat(void);
 
 /*---------------------------------------------------------------------------*/
-PROCESS(border_router_cmd_process, "Border router cmd process");
+PROCESS(slip_bridge_cmd_process, "Border router cmd process");
 /*---------------------------------------------------------------------------*/
 /* TODO: the below code needs some way of identifying from where the command */
 /* comes. In this case it can be from stdin or from SLIP.                    */
 /*---------------------------------------------------------------------------*/
 int
-border_router_cmd_handler(const uint8_t *data, int len)
+slip_bridge_cmd_handler(const uint8_t *data, int len)
 {
   /* handle global repair, etc here */
   if(data[0] == '!') {
@@ -73,7 +73,7 @@ border_router_cmd_handler(const uint8_t *data, int len)
     } else if(data[1] == 'M' && command_context == CMD_CONTEXT_RADIO) {
       /* We need to know that this is from the slip-radio here. */
       PRINTF("Setting MAC address\n");
-      border_router_set_mac(&data[2]);
+      slip_bridge_set_mac(&data[2]);
       return 1;
     } else if(data[1] == 'C' && command_context == CMD_CONTEXT_RADIO) {
       /* We need to know that this is from the slip-radio here. */
@@ -88,7 +88,7 @@ border_router_cmd_handler(const uint8_t *data, int len)
     } else if(data[1] == 'D' && command_context == CMD_CONTEXT_RADIO) {
       /* We need to know that this is from the slip-radio here... */
       PRINTF("Sensor data received\n");
-      border_router_set_sensors((const char *)&data[2], len - 2);
+      slip_bridge_set_sensors((const char *)&data[2], len - 2);
       return 1;
     }
   } else if(data[0] == '?') {
@@ -111,7 +111,7 @@ border_router_cmd_handler(const uint8_t *data, int len)
       write_to_slip(data, len);
       return 1;
     } else if(data[1] == 'S') {
-      border_router_print_stat();
+      slip_bridge_print_stat();
       return 1;
     }
   }
@@ -119,7 +119,7 @@ border_router_cmd_handler(const uint8_t *data, int len)
 }
 /*---------------------------------------------------------------------------*/
 void
-border_router_cmd_output(const uint8_t *data, int data_len)
+slip_bridge_cmd_output(const uint8_t *data, int data_len)
 {
   int i;
   printf("CMD output: ");
@@ -129,7 +129,7 @@ border_router_cmd_output(const uint8_t *data, int data_len)
   printf("\n");
 }
 /*---------------------------------------------------------------------------*/
-PROCESS_THREAD(border_router_cmd_process, ev, data)
+PROCESS_THREAD(slip_bridge_cmd_process, ev, data)
 {
   PROCESS_BEGIN();
   PRINTF("Started br-cmd process\n");

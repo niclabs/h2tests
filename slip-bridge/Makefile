@@ -1,4 +1,4 @@
-CONTIKI_PROJECT=border-router
+CONTIKI_PROJECT=slip-bridge
 all: $(CONTIKI_PROJECT)
 APPS = slip-cmd
 
@@ -8,7 +8,7 @@ CONTIKI=../../..
 SMALL=1
 
 CFLAGS += -DPROJECT_CONF_H=\"project-conf.h\"
-PROJECT_SOURCEFILES += border-router-cmds.c tun-bridge.c border-router-rdc.c \
+PROJECT_SOURCEFILES += slip-bridge-cmds.c tun-bridge.c slip-bridge-rdc.c \
 slip-config.c slip-dev.c
 
 WITH_WEBSERVER=1
@@ -23,5 +23,5 @@ endif
 CONTIKI_WITH_IPV6 = 1
 include $(CONTIKI)/Makefile.include
 
-connect-router:	border-router.native
-	sudo ./border-router.native fd00::1/64
+connect-router:	slip-bridge.native
+	sudo ./slip-bridge.native fd00::1/64

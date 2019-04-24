@@ -63,7 +63,7 @@
 #include "net/netstack.h"
 #include "net/packetbuf.h"
 #include "cmd.h"
-#include "border-router.h"
+#include "slip-bridge.h"
 
 extern const char *slip_config_ipaddr;
 extern char slip_config_tundev[32];

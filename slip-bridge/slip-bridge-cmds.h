@@ -29,31 +29,20 @@
 
 /**
  * \file
- *         Border router header file
+ *         Sets up some commands for the border router
  * \author
+ *         Niclas Finne <nfi@sics.se>
  *         Joakim Eriksson <joakime@sics.se>
  */
 
-#ifndef BORDER_ROUTER_H_
-#define BORDER_ROUTER_H_
+#ifndef SLIP_BRIDGE_CMDS_H_
+#define SLIP_BRIDGE_CMDS_H_
 
-#include "contiki.h"
-#include "net/ip/uip.h"
-#include <stdio.h>
+#define CMD_CONTEXT_RADIO  0
+#define CMD_CONTEXT_STDIO  1
 
-int border_router_cmd_handler(const uint8_t *data, int len);
-int slip_config_handle_arguments(int argc, char **argv);
-void write_to_slip(const uint8_t *buf, int len);
+extern uint8_t command_context;
 
-void border_router_set_prefix_64(const uip_ipaddr_t *prefix_64);
-void border_router_set_mac(const uint8_t *data);
-void border_router_set_sensors(const char *data, int len);
-void border_router_print_stat(void);
+PROCESS_NAME(slip_bridge_cmd_process);
 
-void tun_init(void);
-
-int slip_init(void);
-int slip_set_fd(int maxfd, fd_set *rset, fd_set *wset);
-void slip_handle_fd(fd_set *rset, fd_set *wset);
-
-#endif /* BORDER_ROUTER_H_ */
+#endif /* SLIP_BRIDGE_CMDS_H_ */

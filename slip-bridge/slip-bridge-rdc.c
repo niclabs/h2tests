@@ -41,7 +41,7 @@
 #include "net/queuebuf.h"
 #include "net/netstack.h"
 #include "packetutils.h"
-#include "border-router.h"
+#include "slip-bridge.h"
 #include <string.h>
 
 #define DEBUG 0
@@ -182,7 +182,7 @@ init(void)
   callback_pos = 0;
 }
 /*---------------------------------------------------------------------------*/
-const struct rdc_driver border_router_rdc_driver = {
+const struct rdc_driver slip_bridge_rdc_driver = {
   "br-rdc",
   init,
   send_packet,
