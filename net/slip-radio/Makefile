@@ -6,7 +6,7 @@ ifeq ($(TARGET),)
   -include Makefile.target
 endif
 
-CONTIKI=../../..
+CONTIKI ?= $(CURDIR)/../../deps/contiki
 
 #linker optimizations
 SMALL=1
