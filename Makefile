@@ -60,9 +60,6 @@ endif
 # Include iot-lab targets
 include $(CURDIR)/Makefile.iotlab
 
-# Export all variables
-export
-
 # Create build directories
 ALLDIRS := $(BUILD) $(BIN)
 
