@@ -95,12 +95,14 @@ contiki: $(CONTIKI)
 
 .PHONY: clean
 clean:
-	@echo "Clean $(SLIP_RADIO)" files
-	$(Q) $(MAKE) -C $(dir $(SLIP_RADIO)) clean
+	@echo "Clean tools"
+	$(Q) TARGET=iotlab-a8-m3 $(MAKE) -C $(dir $(SLIP_RADIO)) clean
+	$(Q) TARGET=native $(MAKE) -C $(dir $(SLIP_BRIDGE)) clean
 
 .PHONY: distclean
-	@echo "Clean $(SLIP_RADIO)" files
-	$(Q) $(MAKE) -C $(dir $(SLIP_RADIO)) distclean
+	@echo "Clean tools"
+	$(Q) TARGET=iotlab-a8-m3 $(MAKE) -C $(dir $(SLIP_RADIO)) distclean
+	$(Q) TARGET=native $(MAKE) -C $(dir $(SLIP_BRIDGE)) distclean
 	@echo "Clean files in bin directory"
 	$(Q) rm $(BIN)/*
 
