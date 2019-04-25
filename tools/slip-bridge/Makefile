@@ -2,7 +2,7 @@ CONTIKI_PROJECT=slip-bridge
 all: $(CONTIKI_PROJECT)
 APPS = slip-cmd
 
-CONTIKI ?= $(CURDIR)/../../deps/contiki
+CONTIKI ?= $(CURDIR)/../../build/contiki
 
 #linker optimizations
 SMALL=1
