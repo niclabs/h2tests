@@ -40,6 +40,10 @@ ifneq (,$(IOTLAB_RESOURCES))
 	IOTLAB_NODES_LIST = $(IOTLAB_SITE),$(IOTLAB_TYPE),$(IOTLAB_RESOURCES)
 endif
 
+IOTLAB_NODE_ID_LIST = $(if $(IOTLAB_ID),$(shell iotlab-experiment get -r -i $(IOTLAB_ID) | \
+					  grep '"network_address"' | \
+					  sed -E 's/.*$(IOTLAB_TYPE)-([0-9]+)\.$(IOTLAB_SITE)\.iot-lab\.info.*/\1/'))
+
 # Dependencies for iot lab
 COMMANDS += iotlab-auth iotlab-experiment iotlab-node
 
