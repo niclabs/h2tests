@@ -6,12 +6,13 @@ IOTLAB_NODES		?= 2
 IOTLAB_DURATION		?= 30
 IOTLAB_ARCHI		?= m3:at86rf231
 IOTLAB_NAME			?= $(IOTLAB_TYPE)-exp
-IOTLAB_ID			?= $(shell iotlab-experiment get -l --state Running | \
-						 			jq -r 'last(.items[] | select(.name=="$(IOTLAB_NAME)").id) // empty')
-
+IOTLAB_ID			?= $(shell iotlab-experiment get -l --state Running | grep -m 1 '"id"' | grep -Eo '[[:digit:]]+')
 IOTLAB_TYPE   		 = $(firstword $(subst :, ,$(IOTLAB_ARCHI)))
-IOTLAB_RESOURCES	?= $(if $(IOTLAB_ID),$(shell iotlab-experiment get -ri -i $(IOTLAB_ID) | \
-													jq -r '.items[].$(IOTLAB_SITE).$(IOTLAB_TYPE)'))
+IOTLAB_RESOURCES	?= $(if $(IOTLAB_ID),\
+					   		$(shell iotlab-experiment get -ri -i $(IOTLAB_ID) | \
+					   			grep -i '"$(IOTLAB_TYPE)"' | sed -E 's/.*"([-\+0-9]+)"/\1/'\
+							 )\
+						)
 IOTLAB_WAIT			?= 60
 
 # Authentication parameters
@@ -37,7 +38,7 @@ ifneq (,$(IOTLAB_RESOURCES))
 endif
 
 # Dependencies for iot lab
-COMMANDS += iotlab-auth iotlab-experiment iotlab-node jq
+COMMANDS += iotlab-auth iotlab-experiment iotlab-node
 
 $(IOTLAB_CONFIG):
 	iotlab-auth -u $(IOTLAB_USER)
