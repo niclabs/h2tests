@@ -43,14 +43,12 @@ $(IOTLAB_CONFIG):
 	iotlab-auth -u $(IOTLAB_USER)
 
 iotlab-running: iotlab-experiment $(IOTLAB_CONFIG)
-ifeq (,$(IOTLAB_ID))
-	$(error No experiment running)
-else
-	$(info Found experiment running with id $(IOTLAB_ID))
-endif
+	$(if $(IOTLAB_ID), \
+		$(info Found experiment running with id $(IOTLAB_ID)), \
+		$(error No experiment running))
 
 iotlab-submit: iotlab-experiment $(IOTLAB_CONFIG)
-ifeq (,$(IOTLAB_ID))
+	$(if $(IOTLAB_ID),$(error Found experiment running with id $(IOTLAB_ID)))
 	$(info No experiment found, submitting)
 	$(if $(Q),,$(info "iotlab-experiment submit \
 						-n $(IOTLAB_NAME) \
@@ -64,9 +62,6 @@ ifeq (,$(IOTLAB_ID))
 						 jq .id))
 	$(if $(shell iotlab-experiment wait -i $(IOTLAB_ID) --timeout $(IOTLAB_WAIT)),, \
 		$(error Failed to launch experiment $(shell iotlab-experiment stop -i $(IOTLAB_ID) | jq -r .id)))
-else
-	$(info Found experiment running with id $(IOTLAB_ID))
-endif
 
 iotlab-stop: iotlab-experiment iotlab-running
 	$(Q)iotlab-experiment stop -i $(IOTLAB_ID)
