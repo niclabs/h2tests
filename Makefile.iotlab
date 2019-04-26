@@ -21,6 +21,10 @@ IOTLAB_USER         ?= $(shell cut -f 1 -d : $(IOTLAB_CONFIG))
 # For ssh
 IOTLAB_AUTH			=  "$(IOTLAB_USER)@$(IOTLAB_SITE).iot-lab.info"
 
+# Variables to perform remote commands
+IOTLAB_SITE_SSH		= ssh -t $(IOTLAB_AUTH) "(cd ~/$(1); bash -c '$(2)')"
+IOTLAB_SITE_RSYNC	= rsync -azP $(1) $(IOTLAB_AUTH):$(2) $(3)
+
 # For split and join operations
 null  :=
 space := $(null) #
