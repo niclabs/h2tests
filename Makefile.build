@@ -1,0 +1,69 @@
+
+# Create build directories
+ALLDIRS := $(BUILD) $(BIN)
+
+$(ALLDIRS):
+	@echo "Creating $@"
+	@mkdir -p $@
+
+# Create server certificate
+server.crt: | openssl
+	openssl req -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout $(SERVER_KEY) -out $(SERVER_CERT)
+
+$(CONTIKI): $(OPENLAB)
+	@echo "Get contiki for iot-lab"
+	$(Q) $(GIT) clone https://github.com/iot-lab/contiki.git $@
+	@echo "Get and merge with main contiki branch"
+	$(Q) cd $@ && \
+	   	$(GIT) remote add contiki https://github.com/contiki-os/contiki.git && \
+		$(GIT) fetch contiki && \
+		$(GIT) merge --no-edit contiki/master
+
+$(OPENLAB): | $(BUILD)
+$(OPENLAB): | git
+	@echo "Get openlab repository"
+	$(Q) $(GIT) clone https://github.com/iot-lab/openlab.git $@
+
+.PHONY: contiki
+contiki: $(CONTIKI)
+
+.PHONY: clean
+clean:
+	@echo "Clean tools"
+	$(Q) TARGET=iotlab-a8-m3 $(MAKE) -C $(dir $(SLIP_RADIO)) clean
+	$(Q) TARGET=native $(MAKE) -C $(dir $(SLIP_BRIDGE)) clean
+
+.PHONY: distclean
+	@echo "Clean tools"
+	$(Q) TARGET=iotlab-a8-m3 $(MAKE) -C $(dir $(SLIP_RADIO)) distclean
+	$(Q) TARGET=native $(MAKE) -C $(dir $(SLIP_BRIDGE)) distclean
+	@echo "Clean files in bin directory"
+	$(Q) rm $(BIN)/*
+
+$(SLIP_RADIO): $(CONTIKI)
+	$(Q) $(MAKE) -C $(dir $@)
+
+.PHONY: slip-radio
+slip-radio: export TARGET=iotlab-a8-m3
+slip-radio: $(BIN) $(SLIP_RADIO)
+	$(Q) cp $(SLIP_RADIO) $(BIN)
+
+$(SLIP_BRIDGE): $(CONTIKI)
+	$(Q) $(MAKE) -C $(dir $@)
+
+.PHONY: slip-bridge
+slip-bridge: export TARGET=native
+slip-bridge: $(BIN) $(SLIP_BRIDGE)
+	$(Q) cp $(SLIP_BRIDGE) $(BIN)
+
+.PHONY: help
+help:
+	@echo "Provided targets"
+	@echo "- contiki: get contiki operating system source files"
+	@echo "- slip-radio: build slip radio for iotlab-a8-m3"
+	@echo "- slip-bridge: build slip bridge for native target"
+
+
+# TODO: Get and build nghttp for A8
+
+

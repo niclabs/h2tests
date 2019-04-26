@@ -24,6 +24,14 @@ OPENLAB  ?= $(BUILD)/openlab
 SLIP_RADIO 	?= $(TOOLS)/slip-radio/slip-radio.$(TARGET)
 SLIP_BRIDGE ?= $(TOOLS)/slip-bridge/slip-bridge.$(TARGET)
 
+# Target board where slip-radio will be run
+TARGET	?= iotlab-a8-m3
+ifeq ($(TARGET),iotlab-a8-m3)
+	NATIVE = iotlab-a8
+else
+	NATIVE = localhost
+endif
+
 #######################################################################
 # Make environment variables
 #######################################################################
@@ -53,6 +61,7 @@ else
   Q=
 endif
 
+
 #######################################################################
 # Begin targets
 #######################################################################
@@ -60,78 +69,33 @@ endif
 # Include iot-lab targets
 include $(CURDIR)/Makefile.iotlab
 
-# Create build directories
-ALLDIRS := $(BUILD) $(BIN)
-
-$(ALLDIRS):
-	@echo "Creating $@"
-	@mkdir -p $@
-
 # Check command dependencies
 .PHONY = $(COMMANDS)
 $(COMMANDS):
 	$(if $(shell which $@),,$(error "No $@ in PATH"))
 
-# Create server certificate
-server.crt: | openssl
-	openssl req -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout $(SERVER_KEY) -out $(SERVER_CERT)
+IOTLAB_BASE_DIR  = A8
+IOTLAB_BUILD_DIR = $(IOTLAB_BASE_DIR)/$(notdir $(CURDIR))
 
-$(CONTIKI): $(OPENLAB)
-	@echo "Get contiki for iot-lab"
-	$(Q) $(GIT) clone https://github.com/iot-lab/contiki.git $@
-	@echo "Get and merge with main contiki branch"
-	$(Q) cd $@ && \
-	   	$(GIT) remote add contiki https://github.com/contiki-os/contiki.git && \
-		$(GIT) fetch contiki && \
-		$(GIT) merge --no-edit contiki/master
+# If target is iotlab-a8 and we are on the site, build locally
+ifeq ($(NATIVE),iotlab-a8)
+ifeq ($(shell hostname),$(IOTLAB_SITE))
+BUILD_ENV = local
+endif
+else
+BUILD_ENV = local
+endif
 
-$(OPENLAB): | $(BUILD)
-$(OPENLAB): | git
-	@echo "Get openlab repository"
-	$(Q) $(GIT) clone https://github.com/iot-lab/openlab.git $@
-
-.PHONY: contiki
-contiki: $(CONTIKI)
-
-.PHONY: clean
-clean:
-	@echo "Clean tools"
-	$(Q) TARGET=iotlab-a8-m3 $(MAKE) -C $(dir $(SLIP_RADIO)) clean
-	$(Q) TARGET=native $(MAKE) -C $(dir $(SLIP_BRIDGE)) clean
-
-.PHONY: distclean
-distclean:
-	@echo "Clean tools"
-	$(Q) TARGET=iotlab-a8-m3 $(MAKE) -C $(dir $(SLIP_RADIO)) distclean
-	$(Q) TARGET=native $(MAKE) -C $(dir $(SLIP_BRIDGE)) distclean
-	@echo "Clean files in bin directory"
-	$(Q) rm $(BIN)/*
-
-$(SLIP_RADIO): $(CONTIKI)
-	$(Q) $(MAKE) -C $(dir $@)
-
-.PHONY: slip-radio
-slip-radio: export TARGET=iotlab-a8-m3
-slip-radio: $(BIN) $(SLIP_RADIO)
-	$(Q) cp $(SLIP_RADIO) $(BIN)
-
-$(SLIP_BRIDGE): $(CONTIKI)
-	$(Q) $(MAKE) -C $(dir $@)
-
-.PHONY: slip-bridge
-slip-bridge: export TARGET=native
-slip-bridge: $(BIN) $(SLIP_BRIDGE)
-	$(Q) cp $(SLIP_BRIDGE) $(BIN)
-
-.PHONY: help
-help:
-	@echo "Provided targets"
-	@echo "- contiki: get contiki operating system source files"
-	@echo "- slip-radio: build slip radio for iotlab-a8-m3"
-	@echo "- slip-bridge: build slip bridge for native target"
-
-
-# TODO: Get and build nghttp for A8
+# If we are not building locally call make on iotlab site
+ifneq ($(BUILD_ENV),local)
+.DEFAULT:
+	@echo "Syncing files with IoT-Lab site"
+	$(Q)$(call IOTLAB_SITE_RSYNC,$(CURDIR),$(IOTLAB_BASE_DIR),--exclude='.git' --exclude-from='.gitignore')
+	@echo "Calling make on IoT-Lab site"
+	$(Q)$(call IOTLAB_SITE_SSH,$(IOTLAB_BUILD_DIR), make $@) # call same  make target in remote dir
+else # Not building for IOT-LAB target
+include $(CURDIR)/Makefile.build
+endif # TARGET
 
 
 .DEFAULT_GOAL: all
