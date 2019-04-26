@@ -26,6 +26,9 @@ IOTLAB_AUTH			=  "$(IOTLAB_USER)@$(IOTLAB_SITE).iot-lab.info"
 IOTLAB_SITE_SSH		= ssh -t $(IOTLAB_AUTH) "(cd ~/$(1); bash -c '$(2)')"
 IOTLAB_SITE_RSYNC	= rsync -azP $(1) $(IOTLAB_AUTH):$(2) $(3)
 
+IOTLAB_A8_TUNNEL	= ssh -f -L 222$(1):node-a8-$(1).$(IOTLAB_SITE).iot-lab.info:22 $(IOTLAB_AUTH) "sleep 5"
+IOTLAB_A8_SSH		= $(call IOTLAB_A8_TUNNEL, $(1)); ssh -t root@localhost:222$(1) "cd ~/$(2); bash '$(3)'"
+
 # For split and join operations
 null  :=
 space := $(null) #
