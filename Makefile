@@ -79,23 +79,32 @@ $(COMMANDS):
 IOTLAB_BASE_DIR  = A8
 IOTLAB_BUILD_DIR = $(IOTLAB_BASE_DIR)/$(notdir $(CURDIR))
 
-# If target is iotlab-a8 and we are on the site, build locally
-ifeq ($(NATIVE),iotlab-a8)
+# Where is the build running
 ifeq ($(shell hostname),$(IOTLAB_SITE))
-BUILD_ENV = local
-endif
+	LOCAL_ENV = site
 else
-BUILD_ENV = local
+ifeq ($(shell hostname),node-a8-$(IOTLAB_SERVER_NODE))
+	LOCAL_ENV = node
+else
+	LOCAL_ENV = local
+endif
 endif
 
-# If we are not building locally call make on iotlab site
-ifneq ($(BUILD_ENV),local)
+# Where should the build run
+ifeq ($(NATIVE),iotlab-a8)
+	TARGET_ENV = site
+else
+	TARGET_ENV = local
+endif
+
+# If build should run on iotlab site, rsync and ssh
+ifeq ($(LOCAL_ENV)-$(TARGET_ENV),local-site)
 .DEFAULT:
 	@echo "Syncing files with IoT-Lab site"
 	$(Q)$(call IOTLAB_SITE_RSYNC,$(CURDIR),$(IOTLAB_BASE_DIR),--exclude='.git' --exclude-from='.gitignore')
 	@echo "Calling make on IoT-Lab site"
 	$(Q)$(call IOTLAB_SITE_SSH,$(IOTLAB_BUILD_DIR), make $@) # call same  make target in remote dir
-else # Not building for IOT-LAB target
+else # local env == target env
 include $(CURDIR)/Makefile.build
 endif # TARGET
 
