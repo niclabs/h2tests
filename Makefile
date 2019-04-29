@@ -6,7 +6,9 @@
 # Configure iot-lab experiment parameters
 IOTLAB_ARCHI ?= a8:at86rf231
 IOTLAB_DURATION ?= 180
-IOTLAB_RESOURCES ?= 1+2
+IOTLAB_SERVER_NODE ?= 1
+IOTLAB_CLIENT_NODES ?= 2
+IOTLAB_RESOURCES = $(IOTLAB_SERVER_NODE)+$(IOTLAB_CLIENT_NODES)
 IOTLAB_NAME ?= h2
 
 # Name for the server certificate and private key for nghttp
