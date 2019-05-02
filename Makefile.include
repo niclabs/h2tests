@@ -82,7 +82,7 @@ ifneq ($(BUILD_ENV),site)
 	@echo "Syncing files with IoT-Lab site"
 	$(Q)$(call IOTLAB_SITE_RSYNC,$(CURDIR),$(IOTLAB_BASE_DIR),--exclude='.git' --exclude-from='.gitignore')
 	@echo "Calling make on IoT-Lab site"
-	$(Q)$(call IOTLAB_SITE_SSH,$(IOTLAB_BUILD_DIR),make $(T))
+	$(Q)$(call IOTLAB_SITE_SSH,$(IOTLAB_BUILD_DIR),QUIET=$(QUIET) make $(T))
 else
 	$(MAKE) $(T)
 endif
@@ -95,11 +95,11 @@ ifeq ($(BUILD_ENV),local)
 	@echo "Syncing files with IoT-Lab site"
 	$(Q)$(call IOTLAB_SITE_RSYNC,$(CURDIR),$(IOTLAB_BASE_DIR),--exclude='.git' --exclude-from='.gitignore')
 	@echo "Calling make on IoT-Lab node"
-	$(Q)$(call IOTLAB_A8_TUNNEL_SSH,$(IOTLAB_BUILD_NODE),$(IOTLAB_BUILD_DIR),make $(T)) # call same  make target in remote dir
+	$(Q)$(call IOTLAB_A8_TUNNEL_SSH,$(IOTLAB_BUILD_NODE),$(IOTLAB_BUILD_DIR),QUIET=$(QUIET) make $(T)) # call same  make target in remote dir
 else
 ifeq ($(BUILD_ENV),site)
 	@echo "Calling make on IoT-Lab node"
-	$(Q)$(call IOTLAB_A8_SSH,$(IOTLAB_BUILD_NODE),$(IOTLAB_BUILD_DIR),make $(T)) # call same  make target in remote dir
+	$(Q)$(call IOTLAB_A8_SSH,$(IOTLAB_BUILD_NODE),$(IOTLAB_BUILD_DIR),QUIET=$(QUIET) make $(T)) # call same  make target in remote dir
 else
 	$(MAKE) $(T)
 endif
