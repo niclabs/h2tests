@@ -88,9 +88,9 @@ else
 endif
 
 
-.PHONY: node-build-%
-node-build-%: iotlab-running
-	$(eval T := $(subst node-build-,,$@))
+.PHONY: iotlab-a8-build-%
+iotlab-a8-build-%: iotlab-running
+	$(eval T := $(subst iotlab-a8-build-,,$@))
 ifeq ($(BUILD_ENV),local)
 	@echo "Syncing files with IoT-Lab site"
 	$(Q)$(call IOTLAB_SITE_RSYNC,$(CURDIR),$(IOTLAB_BASE_DIR),--exclude='.git' --exclude-from='.gitignore')
