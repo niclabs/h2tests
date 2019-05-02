@@ -57,6 +57,10 @@ const char *slip_config_port = NULL;
 char slip_config_tundev[32] = { "" };
 uint16_t slip_config_basedelay = 0;
 
+#ifndef B500000
+#define B500000 500000
+#endif
+
 #ifndef BAUDRATE
 #define BAUDRATE B115200
 #endif
@@ -128,9 +132,9 @@ fprintf(stderr,"usage:  %s [options] ipaddress\n", prog);
 fprintf(stderr,"example: slip-bridge.native -L -v2 -s ttyUSB1 fd00::1/64\n");
 fprintf(stderr,"Options are:\n");
 #ifdef linux
-fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200,921600 (default 115200)\n");
+fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200,500000,921600 (default 115200)\n");
 #else
-fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200 (default 115200)\n");
+fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200,500000 (default 115200)\n");
 #endif
 fprintf(stderr," -H             Hardware CTS/RTS flow control (default disabled)\n");
 fprintf(stderr," -L             Log output format (adds time stamps)\n");
@@ -178,6 +182,9 @@ exit(1);
     break;
   case 115200:
     slip_config_b_rate = B115200;
+    break;
+  case 500000:
+    slip_config_b_rate = B500000;
     break;
 #ifdef linux
   case 921600:
