@@ -117,10 +117,13 @@ help:
 
 # TODO: Get and build nghttp for A8
 
-
+# Include remote targets
 include $(CURDIR)/Makefile.include
 
+#######################################################################
 # Environment dependent targets
+#######################################################################
+
 .PHONY: flash-slip-radio
 flash-slip-radio: $(BIN)/slip-radio.$(TARGET)
 ifeq ($(BUILD_ENV),iotlab-a8)
