@@ -57,9 +57,13 @@ else
 endif
 endif
 
+# Prepare build in iotlab site
+ifeq ($(BUILD_ENV),site)
+# Use correct path for gcc-arm-none-eabi
+export PATH:=/opt/gcc-arm-none-eabi-7-2018-q2-update/bin/:$(PATH)
+
 # Check that current directory is an inmediate subdirectory of IOTLAB_BASE_DIR to avoid
 # rsyncing with a8-node
-ifeq ($(BUILD_ENV),site)
 ifneq ($(HOME)/$(IOTLAB_BASE_DIR)/,$(dir $(CURDIR)))
 $(error Build dir '$(notdir $(CURDIR))' must be an immediate subdirectory of $(HOME)/$(IOTLAB_BASE_DIR))
 endif
