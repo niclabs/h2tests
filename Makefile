@@ -76,6 +76,7 @@ clean:
 	$(Q) TARGET=native $(MAKE) -C $(dir $(SLIP_BRIDGE)) clean
 
 .PHONY: distclean
+distclean:
 	@echo "Clean tools"
 	$(Q) TARGET=iotlab-a8-m3 $(MAKE) -C $(dir $(SLIP_RADIO)) distclean
 	$(Q) TARGET=native $(MAKE) -C $(dir $(SLIP_BRIDGE)) distclean
