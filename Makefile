@@ -83,8 +83,10 @@ distclean:
 	@echo "Clean tools"
 	$(Q) TARGET=iotlab-a8-m3 $(MAKE) -C $(dir $(SLIP_RADIO)) distclean
 	$(Q) TARGET=native $(MAKE) -C $(dir $(SLIP_BRIDGE)) distclean
+	@echo "Clean build files"
+	$(Q) rm -rf $(BUILD)
 	@echo "Clean files in bin directory"
-	$(Q) rm $(BIN)/*
+	$(Q) rm -rf $(BIN)
 
 $(SLIP_RADIO): $(CONTIKI)
 	$(Q) $(MAKE) -C $(dir $@)
