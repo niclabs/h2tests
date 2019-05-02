@@ -86,18 +86,22 @@ distclean:
 $(SLIP_RADIO): $(CONTIKI)
 	$(Q) $(MAKE) -C $(dir $@)
 
+$(BIN)/slip-radio.$(TARGET): $(BIN) $(SLIP_RADIO)
+	$(Q) cp $(SLIP_RADIO) $(BIN)
+
 .PHONY: slip-radio
 slip-radio: export TARGET=iotlab-a8-m3
-slip-radio: $(BIN) $(SLIP_RADIO)
-	$(Q) cp $(SLIP_RADIO) $(BIN)
+slip-radio: $(BIN)/slip-radio.$(TARGET)
 
 $(SLIP_BRIDGE): $(CONTIKI)
 	$(Q) $(MAKE) -C $(dir $@)
 
+$(BIN)/slip-bridge.$(TARGET): $(BIN) $(SLIP_BRIDGE)
+	$(Q) cp $(SLIP_BRIDGE) $(BIN)
+
 .PHONY: slip-bridge
 slip-bridge: export TARGET=native
-slip-bridge: $(BIN) $(SLIP_BRIDGE)
-	$(Q) cp $(SLIP_BRIDGE) $(BIN)
+slip-bridge: $(BIN)/slip-bridge.$(TARGET)
 
 .PHONY: help
 help:
