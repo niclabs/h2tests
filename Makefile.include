@@ -48,17 +48,17 @@ IOTLAB_BUILD_NODE ?= $(word 1,$(IOTLAB_NODE_ID_LIST))
 
 # Where is the build running
 ifeq ($(shell hostname),$(IOTLAB_SITE))
-	BUILD_ENV = site
+	BUILD_ENV = iotlab
 else
 ifeq ($(shell hostname),node-a8-$(IOTLAB_BUILD_NODE))
-	BUILD_ENV = node
+	BUILD_ENV = iotlab-a8
 else
 	BUILD_ENV = local
 endif
 endif
 
 # Prepare build in iotlab site
-ifeq ($(BUILD_ENV),site)
+ifeq ($(BUILD_ENV),iotlab)
 # Use correct path for gcc-arm-none-eabi
 export PATH:=/opt/gcc-arm-none-eabi-7-2018-q2-update/bin/:$(PATH)
 
@@ -73,7 +73,7 @@ endif
 # Phony target to sync to site
 .PHONY: iotlab-sync
 iotlab-sync:
-ifneq ($(BUILD_ENV),site)
+ifneq ($(BUILD_ENV),iotlab)
 	@echo "Syncing files with IoT-Lab site"
 	$(Q)$(call IOTLAB_SITE_RSYNC,$(CURDIR),$(IOTLAB_BASE_DIR),--exclude='.git' --exclude-from='.gitignore')
 endif
@@ -82,7 +82,7 @@ endif
 .PHONY: iotlab-%
 iotlab-%:
 	$(eval T := $(subst iotlab-,,$@))
-ifneq ($(BUILD_ENV),site)
+ifneq ($(BUILD_ENV),iotlab)
 	@echo "Syncing files with IoT-Lab site"
 	$(Q)$(call IOTLAB_SITE_RSYNC,$(CURDIR),$(IOTLAB_BASE_DIR),--exclude='.git' --exclude-from='.gitignore')
 	@echo "Calling make on IoT-Lab site"
@@ -101,7 +101,7 @@ ifeq ($(BUILD_ENV),local)
 	@echo "Calling make on IoT-Lab node"
 	$(Q)$(call IOTLAB_A8_TUNNEL_SSH,$(IOTLAB_BUILD_NODE),$(IOTLAB_BUILD_DIR),QUIET=$(QUIET) make $(T)) # call same  make target in remote dir
 else
-ifeq ($(BUILD_ENV),site)
+ifeq ($(BUILD_ENV),iotlab)
 	@echo "Calling make on IoT-Lab node"
 	$(Q)$(call IOTLAB_A8_SSH,$(IOTLAB_BUILD_NODE),$(IOTLAB_BUILD_DIR),QUIET=$(QUIET) make $(T)) # call same  make target in remote dir
 else
