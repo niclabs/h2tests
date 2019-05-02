@@ -33,6 +33,9 @@ else
 	NATIVE = localhost
 endif
 
+# Change to show build commands
+QUIET ?= 1
+
 # Command dependencies for running makefile
 COMMANDS += openssl wget git
 
@@ -114,3 +117,10 @@ help:
 
 
 include $(CURDIR)/Makefile.include
+
+# Environment dependent targets
+.PHONY: flash-slip-radio
+flash-slip-radio: $(BIN)/slip-radio.$(TARGET)
+ifeq ($(BUILD_ENV),iotlab-a8)
+	$(Q) flash_a8_m3 $<
+endif
