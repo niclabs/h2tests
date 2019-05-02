@@ -79,9 +79,9 @@ ifneq ($(BUILD_ENV),site)
 endif
 	@echo "All files synced"
 
-.PHONY: iotlab-build-%
-iotlab-build-%:
-	$(eval T := $(subst iotlab-build-,,$@))
+.PHONY: iotlab-%
+iotlab-%:
+	$(eval T := $(subst iotlab-,,$@))
 ifneq ($(BUILD_ENV),site)
 	@echo "Syncing files with IoT-Lab site"
 	$(Q)$(call IOTLAB_SITE_RSYNC,$(CURDIR),$(IOTLAB_BASE_DIR),--exclude='.git' --exclude-from='.gitignore')
@@ -92,9 +92,9 @@ else
 endif
 
 
-.PHONY: iotlab-a8-build-%
-iotlab-a8-build-%: iotlab-running
-	$(eval T := $(subst iotlab-a8-build-,,$@))
+.PHONY: iotlab-a8-%
+iotlab-a8-%: iotlab-running
+	$(eval T := $(subst iotlab-a8-,,$@))
 ifeq ($(BUILD_ENV),local)
 	@echo "Syncing files with IoT-Lab site"
 	$(Q)$(call IOTLAB_SITE_RSYNC,$(CURDIR),$(IOTLAB_BASE_DIR),--exclude='.git' --exclude-from='.gitignore')
