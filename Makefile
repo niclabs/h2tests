@@ -68,6 +68,9 @@ endif
 # Begin targets
 #######################################################################
 
+# Export variables
+export
+
 # Include iot-lab targets
 include $(CURDIR)/Makefile.iotlab
 
@@ -90,23 +93,49 @@ else
 endif
 endif
 
-# Where should the build run
-ifeq ($(NATIVE),iotlab-a8)
-	TARGET_ENV = site
-else
-	TARGET_ENV = local
+ifeq ($(LOCAL_ENV),site)
+ifneq ($(HOME)/$(IOTLAB_BASE_DIR)/,$(dir $(CURDIR)))
+$(error Build dir '$(notdir $(CURDIR))' must be an immediate subdirectory of $(HOME)/$(IOTLAB_BASE_DIR))
+endif
 endif
 
-# If build should run on iotlab site, rsync and ssh
-ifeq ($(LOCAL_ENV)-$(TARGET_ENV),local-site)
-.DEFAULT:
+sync:
+ifneq ($(LOCAL_ENV),site)
+	@echo "Syncing files with IoT-Lab site"
+	$(Q)$(call IOTLAB_SITE_RSYNC,$(CURDIR),$(IOTLAB_BASE_DIR),--exclude='.git' --exclude-from='.gitignore')
+endif
+	@echo "All files synced"
+
+site-%:
+	$(eval T := $(subst site-,,$@))
+ifneq ($(LOCAL_ENV),site)
 	@echo "Syncing files with IoT-Lab site"
 	$(Q)$(call IOTLAB_SITE_RSYNC,$(CURDIR),$(IOTLAB_BASE_DIR),--exclude='.git' --exclude-from='.gitignore')
 	@echo "Calling make on IoT-Lab site"
-	$(Q)$(call IOTLAB_SITE_SSH,$(IOTLAB_BUILD_DIR), make $@) # call same  make target in remote dir
-else # local env == target env
-include $(CURDIR)/Makefile.build
-endif # TARGET
+	$(Q)$(call IOTLAB_SITE_SSH,$(IOTLAB_BUILD_DIR),make $(T))
+else
+	$(MAKE) $(T)
+endif
 
+
+node-%: iotlab-running
+	$(eval T := $(subst node-,,$@))
+ifeq ($(LOCAL_ENV),local)
+	@echo "Syncing files with IoT-Lab site"
+	$(Q)$(call IOTLAB_SITE_RSYNC,$(CURDIR),$(IOTLAB_BASE_DIR),--exclude='.git' --exclude-from='.gitignore')
+	@echo "Calling make on IoT-Lab node"
+	$(Q)$(call IOTLAB_A8_TUNNEL_SSH,$(IOTLAB_SERVER_NODE),$(IOTLAB_BUILD_DIR),make $(T)) # call same  make target in remote dir
+else
+ifeq ($(LOCAL_ENV),site)
+	@echo "Calling make on IoT-Lab node"
+	$(Q)$(call IOTLAB_A8_SSH,$(IOTLAB_SERVER_NODE),$(IOTLAB_BUILD_DIR),make $(T)) # call same  make target in remote dir
+else
+	$(MAKE) $(T)
+endif
+endif
+
+
+# Include targets
+include $(CURDIR)/Makefile.build
 
 .DEFAULT_GOAL: all
