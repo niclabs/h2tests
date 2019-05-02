@@ -34,14 +34,6 @@ endif
 # Begin targets
 #######################################################################
 
-# Include iot-lab targets
-include $(CURDIR)/Makefile.iotlab
-
-# Check command dependencies
-.PHONY = $(COMMANDS)
-$(COMMANDS):
-	$(if $(shell which $@),,$(error "No $@ in PATH"))
-
 IOTLAB_BASE_DIR  ?= A8
 IOTLAB_BUILD_DIR = $(IOTLAB_BASE_DIR)/$(notdir $(CURDIR))
 IOTLAB_BUILD_NODE ?= $(word 1,$(IOTLAB_NODE_ID_LIST))
@@ -56,6 +48,18 @@ else
 	BUILD_ENV = local
 endif
 endif
+
+# Do not include iotlab-targets if in node build environment
+ifneq ($(BUILD_ENV),iotlab-a8)
+# Include iot-lab targets
+include $(CURDIR)/Makefile.iotlab
+endif
+
+# Check command dependencies
+.PHONY = $(COMMANDS)
+$(COMMANDS):
+	$(if $(shell which $@),,$(error "No $@ in PATH"))
+
 
 # Prepare build in iotlab site
 ifeq ($(BUILD_ENV),iotlab)
