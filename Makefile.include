@@ -42,7 +42,8 @@ IOTLAB_BUILD_NODE ?= $(word 1,$(IOTLAB_NODE_ID_LIST))
 ifeq ($(shell hostname),$(IOTLAB_SITE))
 	BUILD_ENV = iotlab
 else
-ifeq ($(shell hostname),node-a8-$(IOTLAB_BUILD_NODE))
+ifneq ($(shell hostname | grep -E 'node-a8-[[:digit:]]+'),)
+	IOTLAB_BUILD_NODE ?= $(shell hostname | sed -E 's/node-a8-([[:digit:]]+)/\1/')
 	BUILD_ENV = iotlab-a8
 else
 	BUILD_ENV = local
