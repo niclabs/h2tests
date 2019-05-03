@@ -86,7 +86,7 @@ distclean:
 	@echo "Clean files in bin directory"
 	$(Q) rm -rf $(BIN)
 
-$(SLIP_RADIO): $(CONTIKI)
+$(SLIP_RADIO): $(CONTIKI) $(TOOLS)/slip-radio/*.c $(TOOLS)/slip-radio/*.h $(TOOLS)/slip-radio/Makefile
 	$(Q) $(MAKE) -C $(dir $@)
 
 $(BIN)/slip-radio.$(TARGET): $(BIN) $(SLIP_RADIO)
@@ -96,7 +96,7 @@ $(BIN)/slip-radio.$(TARGET): $(BIN) $(SLIP_RADIO)
 build-slip-radio: export TARGET=iotlab-a8-m3
 build-slip-radio: $(BIN)/slip-radio.$(TARGET)
 
-$(SLIP_BRIDGE): $(CONTIKI)
+$(SLIP_BRIDGE): $(CONTIKI) $(TOOLS)/slip-bridge/*.c $(TOOLS)/slip-bridge/*.h $(TOOLS)/slip-bridge/Makefile
 	$(Q) $(MAKE) -C $(dir $@)
 
 $(BIN)/slip-bridge.$(TARGET): $(BIN) $(SLIP_BRIDGE)
