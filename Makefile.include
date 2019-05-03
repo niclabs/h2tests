@@ -93,6 +93,26 @@ endif
 	@echo "All files synced" $(LOCAL)
 
 
+.PHONY: iotlab-a8-all-%
+iotlab-a8-all-%:
+	$(eval T := $(subst iotlab-a8-all-,,$@))
+ifeq ($(BUILD_ENV),iotlab)
+	@echo "Calling make on IoT-Lab nodes $(IOTLAB_NODE_ID_LIST)" $(SITE)
+	$(Q) $(foreach id,$(IOTLAB_NODE_ID_LIST), \
+			$(call IOTLAB_A8_SSH,$(id),$(IOTLAB_BUILD_DIR),QUIET=$(QUIET) make $(T)) $(call NODE,$(id)); \
+		  )
+else
+ifeq ($(BUILD_ENV),local)
+	@echo "Syncing files with IoT-Lab site" $(LOCAL)
+	$(Q)$(call IOTLAB_SITE_RSYNC,$(CURDIR),$(IOTLAB_BASE_DIR),--exclude='.git' --exclude-from='.gitignore') $(LOCAL)
+	@echo "Calling make on IoT-Lab nodes $(IOTLAB_NODE_ID_LIST)" $(LOCAL)
+	$(Q) $(foreach id,$(IOTLAB_NODE_ID_LIST),\
+			$(call IOTLAB_A8_TUNNEL_SSH,$(id),$(IOTLAB_BUILD_DIR),QUIET=$(QUIET) make $(T)) $(call NODE,$(id)); \
+		 )
+else
+	$(MAKE) $(T)
+endif
+endif
 
 # Run targets in iotlab a8 node
 .PHONY: iotlab-a8-%
