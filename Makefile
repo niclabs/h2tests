@@ -73,18 +73,19 @@ contiki: $(CONTIKI)
 .PHONY: clean
 clean:
 	@echo "Clean tools"
-	$(Q) TARGET=iotlab-a8-m3 $(MAKE) -C $(dir $(SLIP_RADIO)) clean
-	$(Q) TARGET=native $(MAKE) -C $(dir $(SLIP_BRIDGE)) clean
-
-.PHONY: distclean
-distclean:
-	@echo "Clean tools"
 	$(Q) TARGET=iotlab-a8-m3 $(MAKE) -C $(dir $(SLIP_RADIO)) distclean
 	$(Q) TARGET=native $(MAKE) -C $(dir $(SLIP_BRIDGE)) distclean
+
+.PHONY: clean-build
+clean-build: clean
 	@echo "Clean build files"
 	$(Q) rm -rf $(BUILD)
+
+.PHONY: clean-all
+clean-all: clean-build
 	@echo "Clean files in bin directory"
 	$(Q) rm -rf $(BIN)
+
 
 $(SLIP_RADIO): $(CONTIKI) $(TOOLS)/slip-radio/*.c $(TOOLS)/slip-radio/*.h $(TOOLS)/slip-radio/Makefile
 	$(Q) $(MAKE) -C $(dir $@)
