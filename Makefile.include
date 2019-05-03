@@ -47,18 +47,18 @@ NODE = $(call PREFIX,node-a8-$(1))
 
 # Where is the build running
 ifeq ($(HOSTNAME),$(IOTLAB_SITE))
-	BUILD_ENV = iotlab
+	BUILD_ENV = iotlab-site
 else
 ifneq ($(shell hostname | grep -E 'node-a8-[[:digit:]]+'),)
 	IOTLAB_BUILD_NODE = $(shell hostname | sed -E 's/node-a8-([[:digit:]]+)/\1/')
-	BUILD_ENV = iotlab-a8
+	BUILD_ENV = iotlab-node
 else
 	BUILD_ENV = local
 endif
 endif
 
 # Do not include iotlab-targets if in node build environment
-ifneq ($(BUILD_ENV),iotlab-a8)
+ifneq ($(BUILD_ENV),iotlab-node)
 # Include iot-lab targets
 include $(CURDIR)/Makefile.iotlab
 endif
@@ -70,7 +70,7 @@ $(COMMANDS):
 
 
 # Prepare build in iotlab site
-ifeq ($(BUILD_ENV),iotlab)
+ifeq ($(BUILD_ENV),iotlab-site)
 # Use correct path for gcc-arm-none-eabi
 export PATH:=/opt/gcc-arm-none-eabi-7-2018-q2-update/bin/:$(PATH)
 
@@ -83,9 +83,9 @@ endif
 
 
 # Phony target to sync to site
-.PHONY: iotlab-sync
-iotlab-sync:
-ifneq ($(BUILD_ENV),iotlab)
+.PHONY: iotlab-site-sync
+iotlab-site-sync:
+ifneq ($(BUILD_ENV),iotlab-site)
 	@echo "Syncing files with IoT-Lab site" $(LOCAL)
 	$(Q)$(call IOTLAB_SITE_RSYNC,$(CURDIR),$(IOTLAB_BASE_DIR),--exclude='.git' --exclude-from='.gitignore') $(LOCAL)
 endif
@@ -93,10 +93,10 @@ endif
 
 
 # Run a target on all reserved nodes
-.PHONY: iotlab-a8-all-%
-iotlab-a8-all-%: iotlab-running iotlab-sync
-	$(eval T := $(subst iotlab-a8-all-,,$@))
-ifeq ($(BUILD_ENV),iotlab)
+.PHONY: iotlab-node-all-%
+iotlab-node-all-%: iotlab-running iotlab-site-sync
+	$(eval T := $(subst iotlab-node-all-,,$@))
+ifeq ($(BUILD_ENV),iotlab-site)
 	@echo "Calling make on IoT-Lab nodes $(IOTLAB_NODE_ID_LIST)" $(SITE)
 	$(Q) $(foreach id,$(IOTLAB_NODE_ID_LIST), \
 			$(call IOTLAB_A8_SSH,$(id),$(IOTLAB_BUILD_DIR),QUIET=$(QUIET) make $(T)) $(call NODE,$(id)); \
@@ -113,14 +113,14 @@ endif
 endif
 
 # Run targets in iotlab a8 node
-.PHONY: iotlab-a8-%
-iotlab-a8-%: iotlab-running iotlab-sync
-	$(eval T := $(subst iotlab-a8-,,$@))
+.PHONY: iotlab-node-%
+iotlab-node-%: iotlab-running iotlab-site-sync
+	$(eval T := $(subst iotlab-node-,,$@))
 	$(eval ID := $(firstword $(subst -, ,$(T))))
 	$(if $(shell echo $(ID) | grep -E '^[[:digit:]]+$$'),\
-		$(eval T := $(subst iotlab-a8-$(ID)-,,$@)),\
+		$(eval T := $(subst iotlab-node-$(ID)-,,$@)),\
 		$(eval ID := $(IOTLAB_BUILD_NODE)))
-ifeq ($(BUILD_ENV),iotlab)
+ifeq ($(BUILD_ENV),iotlab-site)
 	@echo "Calling make on IoT-Lab node $(ID)" $(SITE)
 	$(Q)$(call IOTLAB_A8_SSH,$(ID),$(IOTLAB_BUILD_DIR),QUIET=$(QUIET) make $(T)) $(call NODE,$(ID))
 else
@@ -134,10 +134,10 @@ endif
 
 
 # Run targets in iotlab site
-.PHONY: iotlab-%
-iotlab-%: iotlab-sync
-	$(eval T := $(subst iotlab-,,$@))
-ifneq ($(BUILD_ENV),iotlab)
+.PHONY: iotlab-site-%
+iotlab-site-%: iotlab-site-sync
+	$(eval T := $(subst iotlab-site-,,$@))
+ifneq ($(BUILD_ENV),iotlab-site)
 	@echo "Calling make on IoT-Lab site" $(LOCAL)
 	$(Q)$(call IOTLAB_SITE_SSH,$(IOTLAB_BUILD_DIR),QUIET=$(QUIET) make $(T)) $(SITE)
 else

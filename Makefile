@@ -131,11 +131,11 @@ help:
 include $(CURDIR)/Makefile.include
 
 #######################################################################
-# Environment dependent targets
+# Build environment dependent targets
 #######################################################################
 
 .PHONY: flash-slip-radio
 flash-slip-radio: $(BIN)/slip-radio.$(TARGET)
-ifeq ($(BUILD_ENV),iotlab-a8)
+ifeq ($(BUILD_ENV),iotlab-node)
 	$(Q) flash_a8_m3 $<
 endif
