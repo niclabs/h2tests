@@ -48,8 +48,9 @@
 #include "contiki.h"
 
 int slip_config_verbose = 0;
-const char *slip_config_ipaddr;
+const char *slip_config_ipaddr = "fe80::1";
 int slip_config_flowcontrol = 0;
+int slip_config_border_router = 0;
 int slip_config_timestamp = 0;
 const char *slip_config_siodev = NULL;
 const char *slip_config_host = NULL;
@@ -77,7 +78,7 @@ slip_config_handle_arguments(int argc, char **argv)
   slip_config_verbose = 0;
 
   prog = argv[0];
-  while((c = getopt(argc, argv, "B:H:D:Lhs:t:v::d::a:p:T")) != -1) {
+  while((c = getopt(argc, argv, "B:H:D:Lhs:t:v::d::a:p:r:T")) != -1) {
     switch(c) {
     case 'B':
       baudrate = atoi(optarg);
@@ -124,12 +125,15 @@ slip_config_handle_arguments(int argc, char **argv)
       slip_config_verbose = 2;
       if(optarg) slip_config_verbose = atoi(optarg);
       break;
-
+    case 'r':
+      slip_config_border_router = 1;
+      if (optarg) slip_config_ipaddr = optarg;
+      break;
     case '?':
     case 'h':
     default:
-fprintf(stderr,"usage:  %s [options] ipaddress\n", prog);
-fprintf(stderr,"example: slip-bridge.native -L -v2 -s ttyUSB1 fd00::1/64\n");
+fprintf(stderr,"usage:  %s [options] \n", prog);
+fprintf(stderr,"example: slip-bridge.native -L -v2 -s ttyUSB1\n");
 fprintf(stderr,"Options are:\n");
 #ifdef linux
 fprintf(stderr," -B baudrate    9600,19200,38400,57600,115200,500000,921600 (default 115200)\n");
@@ -153,17 +157,13 @@ fprintf(stderr,"    -v          Equivalent to -v3\n");
 fprintf(stderr," -d[basedelay]  Minimum delay between outgoing SLIP packets.\n");
 fprintf(stderr,"                Actual delay is basedelay*(#6LowPAN fragments) milliseconds.\n");
 fprintf(stderr,"                -d is equivalent to -d10.\n");
+fprintf(stderr," -r [ipaddr]    Act as a border router with the specified address.\n");
 exit(1);
       break;
     }
   }
   argc -= optind - 1;
   argv += optind - 1;
-
-  if(argc != 2 && argc != 3) {
-    err(1, "usage: %s [-B baudrate] [-H] [-L] [-s siodev] [-t tundev] [-T] [-v verbosity] [-d delay] [-a serveraddress] [-p serverport] ipaddress", prog);
-  }
-  slip_config_ipaddr = argv[1];
 
   switch(baudrate) {
   case -2:

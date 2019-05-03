@@ -75,6 +75,7 @@ static char sensors[MAX_SENSORS][32];
 
 extern int contiki_argc;
 extern char **contiki_argv;
+extern int slip_config_border_router;
 extern const char *slip_config_ipaddr;
 
 CMD_HANDLERS(slip_bridge_cmd_handler);
@@ -245,6 +246,9 @@ slip_bridge_set_mac(const uint8_t *data)
   memcpy(uip_lladdr.addr, data, sizeof(uip_lladdr.addr));
   linkaddr_set_node_addr((linkaddr_t *)uip_lladdr.addr);
 
+  // Do not initialize rpl if not a border router
+  if (slip_config_border_router <= 0) return;
+
   /* is this ok - should instead remove all addresses and
      add them back again - a bit messy... ?*/
   PROCESS_CONTEXT_BEGIN(&tcpip_process);
@@ -290,6 +294,9 @@ slip_bridge_set_sensors(const char *data, int len)
 static void
 set_prefix_64(const uip_ipaddr_t *prefix_64)
 {
+  // Do not set prefix if not a border router
+  if (slip_config_border_router <= 0) return;
+
   rpl_dag_t *dag;
   uip_ipaddr_t ipaddr;
   memcpy(&prefix, prefix_64, 16);
@@ -315,7 +322,7 @@ PROCESS_THREAD(slip_bridge_process, ev, data)
 
   PROCESS_PAUSE();
 
-  PRINTF("RPL-Border router started\n");
+  PRINTF("Slip bridge started\n");
 
   slip_config_handle_arguments(contiki_argc, contiki_argv);
 
