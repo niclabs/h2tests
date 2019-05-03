@@ -107,6 +107,14 @@ $(BIN)/slip-bridge.$(TARGET): $(BIN) $(SLIP_BRIDGE)
 slip-bridge: export TARGET=native
 slip-bridge: $(BIN)/slip-bridge.$(TARGET)
 
+.PHONY: start-router
+run-slip-router: $(BIN)/slip-bridge.native
+	$(Q) $< -v2 -L -s $(TTY) -r $(IPV6_PREFIX)
+
+.PHONY: start-bridge
+run-slip-bridge: $(BIN)/slip-bridge.native
+	$(Q) $< -v2 -L -s $(TTY)
+
 .PHONY: help
 help:
 	@echo "Provided targets"
