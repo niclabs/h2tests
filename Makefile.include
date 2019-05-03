@@ -107,7 +107,7 @@ ifeq ($(BUILD_ENV),local)
 	@echo "Calling make on IoT-Lab node" $(LOCAL)
 	$(Q)$(call IOTLAB_A8_TUNNEL_SSH,$(ID),$(IOTLAB_BUILD_DIR),QUIET=$(QUIET) make $(T)) $(call NODE,$(ID))
 else
-	$(MAKE) $(T)
+	$(Q)$(MAKE) $(T)
 endif
 endif
 
@@ -129,7 +129,7 @@ ifeq ($(BUILD_ENV),local)
 			$(call IOTLAB_A8_TUNNEL_SSH,$(id),$(IOTLAB_BUILD_DIR),QUIET=$(QUIET) make $(T)) $(call NODE,$(id)); \
 		 )
 else
-	$(MAKE) $(T)
+	$(Q)$(MAKE) $(T)
 endif
 endif
 
@@ -147,7 +147,7 @@ ifeq ($(BUILD_ENV),local)
 	@echo "Calling make on IoT-Lab node" $(LOCAL)
 	$(Q)$(call IOTLAB_A8_TUNNEL_SSH,$(IOTLAB_BUILD_NODE),$(IOTLAB_BUILD_DIR),QUIET=$(QUIET) make $(T)) $(A8)
 else
-	$(MAKE) $(T)
+	$(Q)$(MAKE) $(T)
 endif
 endif
 
@@ -162,7 +162,7 @@ ifneq ($(BUILD_ENV),iotlab)
 	@echo "Calling make on IoT-Lab site" $(LOCAL)
 	$(Q)$(call IOTLAB_SITE_SSH,$(IOTLAB_BUILD_DIR),QUIET=$(QUIET) make $(T)) $(SITE)
 else
-	$(MAKE) $(T)
+	$(Q)$(MAKE) $(T)
 endif
 
 .DEFAULT_GOAL: all
