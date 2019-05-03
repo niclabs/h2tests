@@ -108,11 +108,11 @@ build-slip-bridge: $(BIN)/slip-bridge.$(TARGET)
 
 .PHONY: run-slip-router
 run-slip-router: $(BIN)/slip-bridge.native
-	$(Q) $< -v2 -L -s $(TTY) -r $(IPV6_PREFIX)
+	$(Q) $< -v2 -L -s $(TTY) -r $(IPV6_PREFIX) -B 500000
 
 .PHONY: run-slip-bridge
 run-slip-bridge: $(BIN)/slip-bridge.native
-	$(Q) $< -v2 -L -s $(TTY)
+	$(Q) $< -v2 -L -s $(TTY) -B 500000
 
 .PHONY: help
 help:
