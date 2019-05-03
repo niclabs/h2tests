@@ -144,4 +144,10 @@ else
 	$(Q)$(MAKE) $(T)
 endif
 
+.PHONY: %-nop
+%-nop: export PREFIX_DISABLE=1
+%-nop:
+	$(eval T := $(subst -nop,,$@))
+	$(Q) $(MAKE) $(T)
+
 .DEFAULT_GOAL: all
