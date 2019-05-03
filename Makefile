@@ -98,6 +98,7 @@ $(BIN)/slip-radio.$(TARGET): $(BIN) $(SLIP_RADIO)
 	$(Q) cp $(SLIP_RADIO) $(BIN)
 
 .PHONY: build-slip-radio
+build-slip-radio: export TARGET=iotlab-a8-m3
 build-slip-radio: $(BIN)/slip-radio.$(TARGET)
 
 $(SLIP_BRIDGE): $(CONTIKI)
