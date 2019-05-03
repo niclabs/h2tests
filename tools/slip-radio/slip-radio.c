@@ -48,6 +48,10 @@
 #include "slip-radio.h"
 #include "packetutils.h"
 
+#ifndef BAUDRATE
+#define BAUDRATE 115200
+#endif
+
 #ifdef SLIP_RADIO_CONF_SENSORS
 extern const struct slip_radio_sensors SLIP_RADIO_CONF_SENSORS;
 #endif
@@ -171,7 +175,7 @@ init(void)
 #ifndef BAUD2UBR
 #define BAUD2UBR(baud) baud
 #endif
-  slip_arch_init(BAUD2UBR(115200));
+  slip_arch_init(BAUD2UBR(BAUDRATE));
   process_start(&slip_process, NULL);
   slip_set_input_callback(slip_input_callback);
   packet_pos = 0;
