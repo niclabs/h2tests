@@ -39,6 +39,9 @@ QUIET ?= 1
 # Command dependencies for running makefile
 COMMANDS += openssl wget git
 
+TTY ?= $(if $(shell test $(BUILD_ENV) = iotlab-a8 && echo true),/dev/ttyA8_M3)
+IPV6_PREFIX = 2001:dead:beef::1/64
+
 
 #######################################################################
 # Begin targets
@@ -95,7 +98,7 @@ $(BIN)/slip-radio.$(TARGET): $(BIN) $(SLIP_RADIO)
 	$(Q) cp $(SLIP_RADIO) $(BIN)
 
 .PHONY: slip-radio
-slip-radio: $(BIN)/slip-radio.$(TARGET)
+build-slip-radio: $(BIN)/slip-radio.$(TARGET)
 
 $(SLIP_BRIDGE): $(CONTIKI)
 	$(Q) $(MAKE) -C $(dir $@)
@@ -104,8 +107,8 @@ $(BIN)/slip-bridge.$(TARGET): $(BIN) $(SLIP_BRIDGE)
 	$(Q) cp $(SLIP_BRIDGE) $(BIN)
 
 .PHONY: slip-bridge
-slip-bridge: export TARGET=native
-slip-bridge: $(BIN)/slip-bridge.$(TARGET)
+build-slip-bridge: export TARGET=native
+build-slip-bridge: $(BIN)/slip-bridge.$(TARGET)
 
 .PHONY: start-router
 run-slip-router: $(BIN)/slip-bridge.native
@@ -119,8 +122,11 @@ run-slip-bridge: $(BIN)/slip-bridge.native
 help:
 	@echo "Provided targets"
 	@echo "- contiki: get contiki operating system source files"
-	@echo "- slip-radio: build slip radio for iotlab-a8-m3"
-	@echo "- slip-bridge: build slip bridge for native target"
+	@echo "- build-slip-radio: build slip radio for target node"
+	@echo "- flash-slip-radio: flash slip radio firmware on target node"
+	@echo "- build-slip-bridge: build slip bridge for native target"
+	@echo "- run-slip-bridge: run slip bridge"
+	@echo "- run-slip-router: run slip bridge as 6lowpan border router"
 
 
 # TODO: Get and build nghttp for A8
