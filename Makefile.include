@@ -40,7 +40,7 @@ IOTLAB_BUILD_NODE ?= $(firstword $(IOTLAB_NODE_ID_LIST))
 
 HOSTNAME = $(shell hostname)
 
-PREFIX = 1> >(sed "s/^/$(1)> /") 2> >(sed "s/^/$(1)> /" >&2)
+PREFIX = $(if $(PREFIX_DISABLE),,1> >(sed "s/^/$(1)> /") 2> >(sed "s/^/$(1)> /" >&2))
 LOCAL = $(call PREFIX,$(HOSTNAME))
 SITE = $(call PREFIX,$(IOTLAB_SITE))
 NODE = $(call PREFIX,node-a8-$(1))
