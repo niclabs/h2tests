@@ -36,7 +36,7 @@ endif
 
 IOTLAB_BASE_DIR  ?= A8
 IOTLAB_BUILD_DIR = $(IOTLAB_BASE_DIR)/$(notdir $(CURDIR))
-IOTLAB_BUILD_NODE ?= $(word 1,$(IOTLAB_NODE_ID_LIST))
+IOTLAB_BUILD_NODE ?= $(firstword $(IOTLAB_NODE_ID_LIST))
 
 HOSTNAME = $(shell hostname)
 
