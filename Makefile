@@ -27,11 +27,6 @@ SLIP_BRIDGE ?= $(TOOLS)/slip-bridge/slip-bridge.$(TARGET)
 
 # Target board where slip-radio will be run
 TARGET	?= iotlab-a8-m3
-ifeq ($(TARGET),iotlab-a8-m3)
-	NATIVE = iotlab-a8
-else
-	NATIVE = localhost
-endif
 
 # Change to show build commands
 QUIET ?= 1
