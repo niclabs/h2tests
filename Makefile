@@ -97,7 +97,7 @@ $(SLIP_RADIO): $(CONTIKI)
 $(BIN)/slip-radio.$(TARGET): $(BIN) $(SLIP_RADIO)
 	$(Q) cp $(SLIP_RADIO) $(BIN)
 
-.PHONY: slip-radio
+.PHONY: build-slip-radio
 build-slip-radio: $(BIN)/slip-radio.$(TARGET)
 
 $(SLIP_BRIDGE): $(CONTIKI)
@@ -106,15 +106,15 @@ $(SLIP_BRIDGE): $(CONTIKI)
 $(BIN)/slip-bridge.$(TARGET): $(BIN) $(SLIP_BRIDGE)
 	$(Q) cp $(SLIP_BRIDGE) $(BIN)
 
-.PHONY: slip-bridge
+.PHONY: build-slip-bridge
 build-slip-bridge: export TARGET=native
 build-slip-bridge: $(BIN)/slip-bridge.$(TARGET)
 
-.PHONY: start-router
+.PHONY: run-slip-router
 run-slip-router: $(BIN)/slip-bridge.native
 	$(Q) $< -v2 -L -s $(TTY) -r $(IPV6_PREFIX)
 
-.PHONY: start-bridge
+.PHONY: run-slip-bridge
 run-slip-bridge: $(BIN)/slip-bridge.native
 	$(Q) $< -v2 -L -s $(TTY)
 
