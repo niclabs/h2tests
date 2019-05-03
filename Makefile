@@ -11,8 +11,8 @@ IOTLAB_RESOURCES = $(IOTLAB_SERVER_NODE)+$(IOTLAB_CLIENT_NODES)
 IOTLAB_NAME ?= h2
 
 # Name for the server certificate and private key for nghttp
-SERVER_CERT ?= server.crt
-SERVER_KEY	?= server.key
+SERVER_CERT ?= $(BIN)/server.crt
+SERVER_KEY	?= $(BIN)/server.key
 
 # Build directories
 BIN   ?= $(CURDIR)/bin
@@ -51,7 +51,7 @@ $(ALLDIRS):
 	@mkdir -p $@
 
 # Create server certificate
-server.crt: | openssl
+$(SERVER_KEY) $(SERVER_CERT): | openssl
 	openssl req -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout $(SERVER_KEY) -out $(SERVER_CERT)
 
 $(CONTIKI): $(OPENLAB)
