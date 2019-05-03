@@ -35,7 +35,8 @@ QUIET ?= 1
 COMMANDS += openssl wget git
 
 TTY ?= $(if $(shell test $(BUILD_ENV) = iotlab-a8 && echo true),/dev/ttyA8_M3)
-IPV6_PREFIX = 2001:dead:beef::1/64
+IPV6_ADDR 	= 2001:dead:beef::1
+IPV6_PREFIX = $(IPV6_ADDR)/64
 
 
 #######################################################################
