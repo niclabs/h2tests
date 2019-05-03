@@ -113,7 +113,7 @@ endif
 
 
 .PHONY: iotlab-a8-all-%
-iotlab-a8-all-%:
+iotlab-a8-all-%: iotlab-running
 	$(eval T := $(subst iotlab-a8-all-,,$@))
 ifeq ($(BUILD_ENV),iotlab)
 	@echo "Calling make on IoT-Lab nodes $(IOTLAB_NODE_ID_LIST)" $(SITE)
