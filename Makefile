@@ -174,7 +174,9 @@ slip-bridge: $(BIN)/slip-bridge.native
 help:
 	@echo "Provided targets"
 	@echo "- contiki: get contiki operating system source files"
-	@echo "- nghttp2: get and build nghttp2 1.34.0"
+	@echo "- build-nghttp2: get and build nghttp2 1.34.0"
+	@echo "- nghttpd: run nghttp2 server"
+	@echo "- h2load: run nghttp2 h2load benchmarking tool"
 	@echo "- build-slip-radio: build slip radio for target node"
 	@echo "- flash-slip-radio: flash slip radio firmware on target node"
 	@echo "- build-slip-bridge: build slip bridge for native target"
