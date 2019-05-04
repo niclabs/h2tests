@@ -82,8 +82,8 @@ $(OPENLAB): | git
 	@echo "Get openlab repository"
 	$(Q) $(GIT) clone https://github.com/iot-lab/openlab.git $@
 
-.PHONY: contiki
-contiki: $(CONTIKI)
+.PHONY: get-contiki
+get-contiki: $(CONTIKI)
 
 $(NGHTTP2): $(BUILD)
 	@echo "Get nghttp2 source"
@@ -173,7 +173,7 @@ slip-bridge: $(BIN)/slip-bridge.native
 .PHONY: help
 help:
 	@echo "Provided targets"
-	@echo "- contiki: get contiki operating system source files"
+	@echo "- get-contiki: download contiki operating system source files"
 	@echo "- build-nghttp2: get and build nghttp2 1.34.0"
 	@echo "- nghttpd: run nghttp2 server"
 	@echo "- h2load: run nghttp2 h2load benchmarking tool"
