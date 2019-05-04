@@ -162,12 +162,12 @@ $(BIN)/slip-bridge.$(TARGET): $(BIN) $(SLIP_BRIDGE)
 build-slip-bridge: export TARGET=native
 build-slip-bridge: $(BIN)/slip-bridge.$(TARGET)
 
-.PHONY: run-slip-router
-run-slip-router: $(BIN)/slip-bridge.native
+.PHONY: slip-router
+slip-router: $(BIN)/slip-bridge.native
 	$(Q) $< -v2 -L -s $(TTY) -r $(IPV6_PREFIX) -B 500000
 
-.PHONY: run-slip-bridge
-run-slip-bridge: $(BIN)/slip-bridge.native
+.PHONY: slip-bridge
+slip-bridge: $(BIN)/slip-bridge.native
 	$(Q) $< -v2 -L -s $(TTY) -B 500000
 
 .PHONY: help
@@ -178,8 +178,8 @@ help:
 	@echo "- build-slip-radio: build slip radio for target node"
 	@echo "- flash-slip-radio: flash slip radio firmware on target node"
 	@echo "- build-slip-bridge: build slip bridge for native target"
-	@echo "- run-slip-bridge: run slip bridge"
-	@echo "- run-slip-router: run slip bridge as 6lowpan border router"
+	@echo "- slip-bridge: run slip bridge"
+	@echo "- slip-router: run slip bridge as 6lowpan border router"
 
 
 # TODO: Get and build nghttp for A8
