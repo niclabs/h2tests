@@ -14,6 +14,17 @@ IOTLAB_NAME ?= h2
 SERVER_CERT ?= $(BIN)/server.crt
 SERVER_KEY	?= $(BIN)/server.key
 
+# nghttp2 configuration
+NGHTTP2_VERSION 	?= 1.34.0
+NGHTTP2  			?= $(BUILD)/nghttp2-$(NGHTTP2_VERSION)
+
+#http parameters
+HTTP_PORT 						?= 80
+HTTP_ROOT 						?= $(CURDIR)
+
+# http2 configuration
+HTTP2_MAX_CONCURRENT_STREAMS 	?= 1
+
 # Build directories
 BIN   ?= $(CURDIR)/bin
 BUILD ?= $(CURDIR)/build
@@ -38,6 +49,9 @@ TTY ?= $(if $(shell test $(BUILD_ENV) = iotlab-a8 && echo true),/dev/ttyA8_M3)
 IPV6_ADDR 	= 2001:dead:beef::1
 IPV6_PREFIX = $(IPV6_ADDR)/64
 
+# For running nghttp2
+PYTHONPATH ?= $(BIN)/lib/python2.7/site-packages/
+export PYTHONPATH
 
 #######################################################################
 # Begin targets
@@ -70,6 +84,46 @@ $(OPENLAB): | git
 
 .PHONY: contiki
 contiki: $(CONTIKI)
+
+$(NGHTTP2): $(BUILD)
+	@echo "Get nghttp2 source"
+	$(Q) cd $(BUILD) && \
+	   	wget -qO - https://github.com/nghttp2/nghttp2/releases/download/v$(NGHTTP2_VERSION)/nghttp2-$(NGHTTP2_VERSION).tar.gz | gunzip -c - | tar xvf -
+
+# Build nghttp2 tools
+$(BIN)/nghttpd $(BIN)/h2load: | $(NGHTTP2) $(BIN)
+$(BIN)/nghttpd $(BIN)/h2load: | wget
+	@echo "Configure nghttp2"
+	$(Q)cd $(NGHTTP2) && \
+		./configure --prefix=$(BIN) --bindir=$(BIN) --mandir=/tmp --docdir=/tmp
+	@echo "Build nghttp2"
+	$(Q) $(MAKE) -C $(NGHTTP2)
+	@echo "Install nghttp2"
+	$(Q) mkdir -p $(PYTHONPATH)
+	$(Q) $(MAKE) -C $(NGHTTP2) install
+
+.PHONY: build-nghttp2
+build-nghttp2: $(BIN)/nghttpd
+
+.PHONY: nghttpd
+nghttpd: $(BIN)/nghttpd $(SERVER_CERT) $(SERVER_KEY)
+	$(Q) $(BIN)/nghttpd -d $(HTTP_ROOT) $(HTTP_PORT) $(SERVER_KEY) $(SERVER_CERT) \
+		$(if $(HTTP2_MAX_CONCURRENT_STREAMS),--max-concurrent-streams=$(HTTP2_MAX_CONCURRENT_STREAMS)) \
+		$(if $(HTTP2_ENCODER_HEADER_TABLE_SIZE),--encoder-header-table-size=$(HTTP2_ENCODER_HEADER_TABLE_SIZE)) \
+		$(if $(HTTP2_HEADER_TABLE_SIZE),--header-table-size=$(HTTP2_HEADER_TABLE_SIZE)) \
+		$(if $(HTTP2_WINDOW_BITS),--window-bits=$(HTTP2_WINDOW_BITS)) \
+		$(if $(HTTP2_CONNECTION_WINDOW_BITS),--connection-window-bits=$(HTTP2_CONNECTION_WINDOW_BITS))
+
+.PHONY: h2load
+h2load: $(BIN)/h2load
+	$(Q) $(BIN)/h2load https://[$(IPV6_ADDR)]:$(HTTP_PORT) \
+		$(if $(HTTP2_CLIENTS),--clients=$(HTTP2_CLIENTS)) \
+		$(if $(HTTP2_MAX_CONCURRENT_STREAMS),--max-concurrent-streams=$(HTTP2_MAX_CONCURRENT_STREAMS)) \
+		$(if $(HTTP2_ENCODER_HEADER_TABLE_SIZE),--encoder-header-table-size=$(HTTP2_ENCODER_HEADER_TABLE_SIZE)) \
+		$(if $(HTTP2_HEADER_TABLE_SIZE),--header-table-size=$(HTTP2_HEADER_TABLE_SIZE)) \
+		$(if $(HTTP2_WINDOW_BITS),--window-bits=$(HTTP2_WINDOW_BITS)) \
+		$(if $(HTTP2_CONNECTION_WINDOW_BITS),--connection-window-bits=$(HTTP2_CONNECTION_WINDOW_BITS))
+
 
 .PHONY: clean
 clean:
@@ -120,6 +174,7 @@ run-slip-bridge: $(BIN)/slip-bridge.native
 help:
 	@echo "Provided targets"
 	@echo "- contiki: get contiki operating system source files"
+	@echo "- nghttp2: get and build nghttp2 1.34.0"
 	@echo "- build-slip-radio: build slip radio for target node"
 	@echo "- flash-slip-radio: flash slip radio firmware on target node"
 	@echo "- build-slip-bridge: build slip bridge for native target"
