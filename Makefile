@@ -9,6 +9,7 @@ IOTLAB_SERVER_NODE ?= 1
 IOTLAB_CLIENT_NODES ?= 2
 IOTLAB_RESOURCES = $(IOTLAB_SERVER_NODE)+$(IOTLAB_CLIENT_NODES)
 IOTLAB_NAME ?= h2
+IOTLAB_PROFILE ?= battery_a8
 
 # Name for the server certificate and private key for nghttp
 SERVER_CERT ?= $(BIN)/server.crt
