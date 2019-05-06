@@ -27,7 +27,7 @@ IOTLAB_SITE_SSH		= ssh -t $(IOTLAB_AUTH) "(bash -l -c 'cd ~/$(1); $(2)')"
 IOTLAB_SITE_RSYNC	= rsync -azP $(1) $(IOTLAB_AUTH):$(2) $(3)
 
 IOTLAB_A8_SSH			= ssh root@node-a8-$(1).$(IOTLAB_SITE).iot-lab.info "(bash -l -c 'cd ~/$(2); $(3)')"
-IOTLAB_A8_TUNNEL		= ssh -f -L 222$(1):node-a8-$(1).$(IOTLAB_SITE).iot-lab.info:22 $(IOTLAB_AUTH) "sleep 5"
+IOTLAB_A8_TUNNEL		= ssh -q -f -L 222$(1):node-a8-$(1).$(IOTLAB_SITE).iot-lab.info:22 $(IOTLAB_AUTH) "sleep 5"
 IOTLAB_A8_TUNNEL_SSH	= $(call IOTLAB_A8_TUNNEL,$(1)); ssh -o StrictHostKeyChecking=no -p 222$(1) -t root@localhost "(bash -l -c 'cd ~/$(2);$(3)')"
 
 # For split and join operations
