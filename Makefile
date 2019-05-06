@@ -20,8 +20,7 @@ NGHTTP2_VERSION 	?= 1.34.0
 NGHTTP2  			?= $(BUILD)/nghttp2-$(NGHTTP2_VERSION)
 
 #http parameters
-HTTP_PORT 						?= 80
-HTTP_ROOT 						?= $(CURDIR)/www
+HTTP_PORT 					?= 80
 
 # http2 configuration
 HTTP2_MAX_CONCURRENT_STREAMS 	?= 1
@@ -30,6 +29,7 @@ HTTP2_MAX_CONCURRENT_STREAMS 	?= 1
 BIN   ?= $(CURDIR)/bin
 BUILD ?= $(CURDIR)/build
 TOOLS ?= $(CURDIR)/tools
+WWW   ?= $(BUILD)/www/
 
 # Build targets
 CONTIKI  ?= $(BUILD)/contiki
@@ -109,7 +109,7 @@ build-nghttp2: $(BIN)/nghttpd
 
 .PHONY: nghttpd
 nghttpd: $(BIN)/nghttpd $(SERVER_CERT) $(SERVER_KEY)
-	$(Q) $(BIN)/nghttpd -v -d $(HTTP_ROOT) $(HTTP_PORT) $(SERVER_KEY) $(SERVER_CERT) \
+	$(Q) $(BIN)/nghttpd -v -d $(WWW) $(HTTP_PORT) $(SERVER_KEY) $(SERVER_CERT) \
 		$(if $(HTTP2_MAX_CONCURRENT_STREAMS),--max-concurrent-streams=$(HTTP2_MAX_CONCURRENT_STREAMS)) \
 		$(if $(HTTP2_HEADER_TABLE_SIZE),--encoder-header-table-size=$(HTTP2_HEADER_TABLE_SIZE)) \
 		$(if $(HTTP2_HEADER_TABLE_SIZE),--header-table-size=$(HTTP2_HEADER_TABLE_SIZE)) \
