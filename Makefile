@@ -20,7 +20,7 @@ NGHTTP2  			?= $(BUILD)/nghttp2-$(NGHTTP2_VERSION)
 
 #http parameters
 HTTP_PORT 						?= 80
-HTTP_ROOT 						?= $(CURDIR)
+HTTP_ROOT 						?= $(CURDIR)/www
 
 # http2 configuration
 HTTP2_MAX_CONCURRENT_STREAMS 	?= 1
