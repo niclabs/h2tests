@@ -50,10 +50,6 @@ TTY ?= $(if $(shell test $(BUILD_ENV) = iotlab-node && echo true),/dev/ttyA8_M3)
 IPV6_ADDR 	= 2001:dead:beef::1
 IPV6_PREFIX = $(IPV6_ADDR)/64
 
-# For running nghttp2
-PYTHONPATH ?= $(BIN)/lib/python2.7/site-packages/
-export PYTHONPATH
-
 #######################################################################
 # Begin targets
 #######################################################################
@@ -95,7 +91,8 @@ $(NGHTTP2)/configure: | wget
 $(NGHTTP2)/Makefile: $(NGHTTP2)/configure
 	@echo "Configure nghttp2"
 	$(Q)cd $(NGHTTP2) && \
-		./configure --prefix=$(BIN) --bindir=$(BIN) --mandir=/tmp --docdir=/tmp
+		./configure --prefix=$(BIN) --bindir=$(BIN) --mandir=/tmp --docdir=/tmp --enable-app --disable-hpack-tools --disable-examples --disable-python-bindings
+
 # Build nghttp2 tools
 $(BIN)/nghttpd $(BIN)/h2load: $(NGHTTP2)/Makefile $(BIN)
 	@echo "Build nghttp2"
