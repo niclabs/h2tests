@@ -66,7 +66,7 @@ $(ALLDIRS):
 
 # Create server certificate
 $(SERVER_KEY) $(SERVER_CERT): | openssl
-	openssl req -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout $(SERVER_KEY) -out $(SERVER_CERT)
+	openssl req -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout $(SERVER_KEY) -out $(SERVER_CERT) -subj '/CN=$(IPV6_ADDR)'
 
 $(CONTIKI): $(OPENLAB)
 	@echo "Get contiki for iot-lab"
