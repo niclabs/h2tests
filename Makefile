@@ -86,7 +86,8 @@ $(OPENLAB): | git
 .PHONY: get-contiki
 get-contiki: $(CONTIKI)
 
-$(NGHTTP2)/configure: $(BUILD)
+$(NGHTTP2)/configure: | $(BUILD)
+$(NGHTTP2)/configure: | wget
 	@echo "Get nghttp2 source"
 	$(Q) cd $(BUILD) && \
 	   	wget -qO - https://github.com/nghttp2/nghttp2/releases/download/v$(NGHTTP2_VERSION)/nghttp2-$(NGHTTP2_VERSION).tar.gz | gunzip -c - | tar xvf -
