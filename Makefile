@@ -86,17 +86,17 @@ $(OPENLAB): | git
 .PHONY: get-contiki
 get-contiki: $(CONTIKI)
 
-$(NGHTTP2): $(BUILD)
+$(NGHTTP2)/configure: $(BUILD)
 	@echo "Get nghttp2 source"
 	$(Q) cd $(BUILD) && \
 	   	wget -qO - https://github.com/nghttp2/nghttp2/releases/download/v$(NGHTTP2_VERSION)/nghttp2-$(NGHTTP2_VERSION).tar.gz | gunzip -c - | tar xvf -
 
-# Build nghttp2 tools
-$(BIN)/nghttpd $(BIN)/h2load: | $(NGHTTP2) $(BIN)
-$(BIN)/nghttpd $(BIN)/h2load: | wget
+$(NGHTTP2)/Makefile: $(NGHTTP2)/configure
 	@echo "Configure nghttp2"
 	$(Q)cd $(NGHTTP2) && \
 		./configure --prefix=$(BIN) --bindir=$(BIN) --mandir=/tmp --docdir=/tmp
+# Build nghttp2 tools
+$(BIN)/nghttpd $(BIN)/h2load: $(NGHTTP2)/Makefile $(BIN)
 	@echo "Build nghttp2"
 	$(Q) $(MAKE) -C $(NGHTTP2)
 	@echo "Install nghttp2"
