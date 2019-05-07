@@ -98,7 +98,6 @@ $(BIN)/nghttpd $(BIN)/h2load: $(NGHTTP2)/Makefile $(BIN)
 	@echo "Build nghttp2"
 	$(Q) $(MAKE) -C $(NGHTTP2)
 	@echo "Install nghttp2"
-	$(Q) mkdir -p $(PYTHONPATH)
 	$(Q) $(MAKE) -C $(NGHTTP2) install
 
 .PHONY: build-nghttp2
