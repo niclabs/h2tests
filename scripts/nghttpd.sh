@@ -75,7 +75,7 @@ summary() {
     echo "window-bits: $WINDOW_BITS"
     echo "max-frame-size: $MAX_FRAME_SIZE"
     echo "max-header-list-size: $MAX_HEADER_LIST_SIZE"
-    echo "schema: time cpu mem"
+    echo -e "columns: time\tcpu\tmem"
     cat /tmp/$PID-load.log
 }
 
