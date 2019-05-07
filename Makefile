@@ -55,7 +55,7 @@ IPV6_PREFIX = $(IPV6_ADDR)/64
 #######################################################################
 
 # Create build directories
-ALLDIRS := $(BUILD) $(BIN)
+ALLDIRS := $(BUILD) $(BIN) $(WWW)
 
 $(ALLDIRS):
 	@echo "Creating $@"
