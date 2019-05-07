@@ -100,7 +100,8 @@ trap summary SIGINT
 
 # Execute server and store data
 START_TIME=$(date +%s)
-top -b -d 0.01 > >(grep  "nghttpd$" | awk '{print $11 "\t" $9 "\t" $10}' > /tmp/$PID-load.log) &
+top -b -d 0.01 > >(grep  "nghttpd$" | awk '{print system("echo -n `date +%s.%N`") "\t" $9 "\t" $10}' > /tmp/$PID-load.log) &
+
 TOP_PID=$!
 nghttpd $1 $2 $3 &
 WAIT_PID=$!
