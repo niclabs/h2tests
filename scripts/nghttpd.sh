@@ -45,10 +45,6 @@ usage() {
 nghttpd() {
 	CMD="$BIN/nghttpd -d $WWW"
 
-	if [ -n "$VERBOSE" ]; then
-        CMD="$CMD -v"
-    fi
-
 	if [ -n "$MAX_CONCURRENT_STREAMS" ]; then
         CMD="$CMD --max-concurrent-streams=$MAX_CONCURRENT_STREAMS"
     fi
@@ -69,9 +65,7 @@ nghttpd() {
         CMD="$CMD --max-header-list-size=$MAX_HEADER_LIST_SIZE"
     fi
 
-    CMD="$CMD $1 $2 $3"
-
-    exec $CMD 1>&2
+    exec $CMD $* 1>&2
 }
 
 summary() {
@@ -103,7 +97,7 @@ START_TIME=$(date +%s)
 top -b -d 0.01 > >(grep  "nghttpd$" | awk '{print system("echo -n `date +%s.%N`") "\t" $9 "\t" $10}' > /tmp/$PID-load.log) &
 
 TOP_PID=$!
-nghttpd $1 $2 $3 &
+nghttpd $* &
 WAIT_PID=$!
 
 wait
