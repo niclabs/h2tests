@@ -113,7 +113,9 @@ nghttpd: $(BIN)/nghttpd $(SERVER_CERT) $(SERVER_KEY)
 		$(if $(HTTP2_HEADER_TABLE_SIZE),--encoder-header-table-size=$(HTTP2_HEADER_TABLE_SIZE)) \
 		$(if $(HTTP2_HEADER_TABLE_SIZE),--header-table-size=$(HTTP2_HEADER_TABLE_SIZE)) \
 		$(if $(HTTP2_WINDOW_BITS),--window-bits=$(HTTP2_WINDOW_BITS)) \
-		$(if $(HTTP2_WINDOW_BITS),--connection-window-bits=$(HTTP2_WINDOW_BITS))
+		$(if $(HTTP2_WINDOW_BITS),--connection-window-bits=$(HTTP2_WINDOW_BITS)) \
+		$(if $(HTTP2_MAX_FRAME_SIZE),--max-frame-size=$(HTTP2_MAX_FRAME_SIZE)) \
+		$(if $(HTTP2_MAX_HEADER_LIST_SIZE),--max-header-list-size=$(HTTP2_HEADER_LIST_SIZE))
 
 .PHONY: h2load
 h2load: $(BIN)/h2load
@@ -123,7 +125,9 @@ h2load: $(BIN)/h2load
 		$(if $(HTTP2_HEADER_TABLE_SIZE),--encoder-header-table-size=$(HTTP2_HEADER_TABLE_SIZE)) \
 		$(if $(HTTP2_HEADER_TABLE_SIZE),--header-table-size=$(HTTP2_HEADER_TABLE_SIZE)) \
 		$(if $(HTTP2_WINDOW_BITS),--window-bits=$(HTTP2_WINDOW_BITS)) \
-		$(if $(HTTP2_WINDOW_BITS),--connection-window-bits=$(HTTP2_WINDOW_BITS))
+		$(if $(HTTP2_WINDOW_BITS),--connection-window-bits=$(HTTP2_WINDOW_BITS)) \
+		$(if $(HTTP2_MAX_FRAME_SIZE),--max-frame-size=$(HTTP2_MAX_FRAME_SIZE)) \
+		$(if $(HTTP2_MAX_HEADER_LIST_SIZE),--max-header-list-size=$(HTTP2_HEADER_LIST_SIZE))
 
 
 .PHONY: clean
