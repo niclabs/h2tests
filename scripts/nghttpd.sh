@@ -69,7 +69,7 @@ nghttpd() {
 }
 
 summary() {
-    END_TIME=$(date +%s)
+    END_TIME=$(date +%s.%N)
 
     echo "start-time: $START_TIME"
     echo "end-time: $END_TIME"
@@ -93,7 +93,7 @@ trap sigterm SIGTERM
 trap summary SIGINT
 
 # Execute server and store data
-START_TIME=$(date +%s)
+START_TIME=$(date +%s.%N)
 top -b -d 0.01 > >(grep  "nghttpd$" | awk '{print system("echo -n `date +%s.%N`") "\t" $9 "\t" $10}' > /tmp/$PID-load.log) &
 
 TOP_PID=$!
