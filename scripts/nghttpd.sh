@@ -76,7 +76,7 @@ summary() {
     echo "max-frame-size: $MAX_FRAME_SIZE"
     echo "max-header-list-size: $MAX_HEADER_LIST_SIZE"
     echo -e "columns: time\tcpu\tmem"
-    cat /tmp/$PID-load.log
+    cat /tmp/$PID-nghttpd.log
 }
 
 sigterm() {
@@ -91,7 +91,7 @@ trap summary SIGINT
 
 # Execute server and store data
 START_TIME=$(date +%s.%N)
-top -b -d 0.01 > >(grep  "nghttpd$" | awk '{print system("echo -n `date +%s.%N`") "\t" $9 "\t" $10}' > /tmp/$PID-load.log) &
+top -b -d 0.01 > >(grep  "nghttpd$" | awk '{print system("echo -n `date +%s.%N`") "\t" $9 "\t" $10}' > /tmp/$PID-nghttpd.log) &
 
 TOP_PID=$!
 nghttpd $* &
