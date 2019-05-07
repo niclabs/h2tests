@@ -10,8 +10,6 @@ eval set -- "$OPTS"
 
 # Default directories
 BIN=${BIN:-"./bin"}
-WWW=${WWW:-"./build/www"}
-RESULTS=${RESULTS:-"./results"}
 
 MAX_CONCURRENT_STREAMS=1
 HEADER_TABLE_SIZE=4096
@@ -26,7 +24,6 @@ while true; do
     --max-frame-size)           MAX_FRAME_SIZE=$2; shift; shift ;;
     --max-header-list-size)     MAX_HEADER_LIST_SIZE=$2; shift; shift ;;
     -h | --help )               HELP=true; shift ;;
-    -v )                        VERBOSE=true; shift ;;
     -- ) shift; break ;;
     * ) break ;;
   esac
@@ -43,7 +40,7 @@ usage() {
 }
 
 nghttpd() {
-	CMD="$BIN/nghttpd -d $WWW"
+	CMD="$BIN/nghttpd"
 
 	if [ -n "$MAX_CONCURRENT_STREAMS" ]; then
         CMD="$CMD --max-concurrent-streams=$MAX_CONCURRENT_STREAMS"
