@@ -97,7 +97,7 @@ $(NGHTTP2)/Makefile: $(NGHTTP2)/configure
 		./configure --prefix=$(BIN) --bindir=$(BIN) --mandir=/tmp --docdir=/tmp --enable-app --disable-hpack-tools --disable-examples --disable-python-bindings
 
 # Build nghttp2 tools
-$(BIN)/nghttpd $(BIN)/h2load: $(NGHTTP2)/Makefile $(BIN)
+$(BIN)/nghttpd $(BIN)/h2load: $(NGHTTP2)/Makefile | $(BIN)
 	@echo "Build nghttp2"
 	$(Q) $(MAKE) -C $(NGHTTP2)
 	@echo "Install nghttp2"
