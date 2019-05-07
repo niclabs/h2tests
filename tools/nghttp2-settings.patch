@@ -1,0 +1,262 @@
+diff --git a/src/HttpServer.cc b/src/HttpServer.cc
+index 8dcf580..47f45ce 100644
+--- a/src/HttpServer.cc
++++ b/src/HttpServer.cc
+@@ -98,6 +98,8 @@ Config::Config()
+       header_table_size(-1),
+       encoder_header_table_size(-1),
+       window_bits(-1),
++      max_frame_size(16384),
++      max_header_list_size(-1),
+       connection_window_bits(-1),
+       port(0),
+       verbose(false),
+@@ -845,18 +847,27 @@ int Http2Handler::connection_made() {
+   }
+ 
+   auto config = sessions_->get_config();
+-  std::array<nghttp2_settings_entry, 4> entry;
+-  size_t niv = 1;
++  std::array<nghttp2_settings_entry, 6> entry;
++  size_t niv = 2;
+ 
+   entry[0].settings_id = NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS;
+   entry[0].value = config->max_concurrent_streams;
+ 
++  entry[1].settings_id = NGHTTP2_SETTINGS_MAX_FRAME_SIZE;
++  entry[1].value = config->max_frame_size;
++
+   if (config->header_table_size >= 0) {
+     entry[niv].settings_id = NGHTTP2_SETTINGS_HEADER_TABLE_SIZE;
+     entry[niv].value = config->header_table_size;
+     ++niv;
+   }
+ 
++  if (config->max_header_list_size >= 0) {
++    entry[niv].settings_id = NGHTTP2_SETTINGS_MAX_HEADER_LIST_SIZE;
++    entry[niv].value = config->max_header_list_size;
++    ++niv;
++  }
++
+   if (config->window_bits != -1) {
+     entry[niv].settings_id = NGHTTP2_SETTINGS_INITIAL_WINDOW_SIZE;
+     entry[niv].value = (1 << config->window_bits) - 1;
+diff --git a/src/HttpServer.h b/src/HttpServer.h
+index db2137b..0479947 100644
+--- a/src/HttpServer.h
++++ b/src/HttpServer.h
+@@ -72,6 +72,8 @@ struct Config {
+   ssize_t encoder_header_table_size;
+   int window_bits;
+   int connection_window_bits;
++  ssize_t max_frame_size;
++  ssize_t max_header_list_size;
+   uint16_t port;
+   bool verbose;
+   bool daemon;
+diff --git a/src/nghttp.cc b/src/nghttp.cc
+index 7aaa65b..4c59c4b 100644
+--- a/src/nghttp.cc
++++ b/src/nghttp.cc
+@@ -109,6 +109,8 @@ Config::Config()
+       timeout(0.),
+       window_bits(-1),
+       connection_window_bits(-1),
++      max_frame_size(16384),
++      max_header_list_size(-1),
+       verbose(0),
+       port_override(0),
+       null_out(false),
+@@ -901,7 +903,7 @@ int HttpClient::connected() {
+ 
+ namespace {
+ size_t populate_settings(nghttp2_settings_entry *iv) {
+-  size_t niv = 2;
++  size_t niv = 3;
+ 
+   iv[0].settings_id = NGHTTP2_SETTINGS_MAX_CONCURRENT_STREAMS;
+   iv[0].value = config.max_concurrent_streams;
+@@ -913,6 +915,15 @@ size_t populate_settings(nghttp2_settings_entry *iv) {
+     iv[1].value = NGHTTP2_INITIAL_WINDOW_SIZE;
+   }
+ 
++  iv[2].settings_id = NGHTTP2_SETTINGS_MAX_FRAME_SIZE;
++  iv[2].value = config.max_frame_size;
++
++  if (config.max_header_list_size >= 0) {
++    iv[niv].settings_id = NGHTTP2_SETTINGS_MAX_HEADER_LIST_SIZE;
++    iv[niv].value = config.max_header_list_size;
++    ++niv;
++  }
++
+   if (config.header_table_size >= 0) {
+     if (config.min_header_table_size < config.header_table_size) {
+       iv[niv].settings_id = NGHTTP2_SETTINGS_HEADER_TABLE_SIZE;
+@@ -2655,10 +2666,17 @@ Options:
+               Timeout each request after <DURATION>.  Set 0 to disable
+               timeout.
+   -w, --window-bits=<N>
+-              Sets the stream level initial window size to 2**<N>-1.
+   -W, --connection-window-bits=<N>
+               Sets  the  connection  level   initial  window  size  to
+               2**<N>-1.
++  --max-frame-size=<SIZE>
++              Specify the size of the largest frame payload that the
++              sender is willing to receive. The size can be any value
++              between 2**14 and 2**24-1.
++  --max-header-list-size=<SIZE>
++              Specify the maximum size of header list that the sender
++              is prepared to accept, in octets. The size can be any
++              value.
+   -a, --get-assets
+               Download assets  such as stylesheets, images  and script
+               files linked  from the downloaded resource.   Only links
+@@ -2797,6 +2815,8 @@ int main(int argc, char **argv) {
+         {"max-concurrent-streams", required_argument, &flag, 12},
+         {"expect-continue", no_argument, &flag, 13},
+         {"encoder-header-table-size", required_argument, &flag, 14},
++        {"max-frame-size", required_argument, &flag, 15},
++        {"max-header-list-size", required_argument, &flag, 16},
+         {nullptr, 0, nullptr, 0}};
+     int option_index = 0;
+     int c =
+@@ -3024,6 +3044,48 @@ int main(int argc, char **argv) {
+         config.encoder_header_table_size = n;
+         break;
+       }
++      case 15: {
++        // max-frame-size option
++        auto n = util::parse_uint_with_unit(optarg);
++        if (n == -1) {
++          std::cerr << "--max-frame-size: Bad option value: "
++                    << optarg << std::endl;
++          exit(EXIT_FAILURE);
++        }
++
++        if (n < (1 << 14)) {
++          std::cerr << "--max-frame-size: Value too small.  It "
++                       "should be greater than or equal to "
++                    << ((1 << 14)) << std::endl;
++          exit(EXIT_FAILURE);
++        }
++
++        if (n > (1 << 24) - 1) {
++          std::cerr << "--max-frame-size: Value too large.  It "
++                       "should be less than or equal to "
++                    << ((1 << 24) - 1) << std::endl;
++          exit(EXIT_FAILURE);
++        }
++        config.max_frame_size = n;
++        break;
++      }
++      case 16: {
++        // max-header-list-size option
++        auto n = util::parse_uint_with_unit(optarg);
++        if (n == -1) {
++          std::cerr << "--max-header-list-size: Bad option value: "
++                    << optarg << std::endl;
++          exit(EXIT_FAILURE);
++        }
++        if (n > std::numeric_limits<uint32_t>::max()) {
++          std::cerr << "--max-header-list-size: Value too large.  It "
++                       "should be less than or equal to "
++                    << std::numeric_limits<uint32_t>::max() << std::endl;
++          exit(EXIT_FAILURE);
++        }
++        config.max_header_list_size = n;
++        break;
++      }
+       }
+       break;
+     default:
+diff --git a/src/nghttp.h b/src/nghttp.h
+index 120eb74..2386a1a 100644
+--- a/src/nghttp.h
++++ b/src/nghttp.h
+@@ -84,6 +84,8 @@ struct Config {
+   int window_bits;
+   int connection_window_bits;
+   int verbose;
++  ssize_t max_frame_size;
++  ssize_t max_header_list_size;
+   uint16_t port_override;
+   bool null_out;
+   bool remote_name;
+diff --git a/src/nghttpd.cc b/src/nghttpd.cc
+index efa0110..00d907a 100644
+--- a/src/nghttpd.cc
++++ b/src/nghttpd.cc
+@@ -128,7 +128,14 @@ Options:
+               Specify encoder header table size.  The decoder (client)
+               specifies  the maximum  dynamic table  size it  accepts.
+               Then the negotiated dynamic table size is the minimum of
+-              this option value and the value which client specified.
++  --max-frame-size=<SIZE>
++              Specify the size of the largest frame payload that the
++              sender is willing to receive. The size can be any value
++              between 2**14 and 2**24-1.
++  --max-header-list-size=<SIZE>
++              Specify the maximum size of header list that the sender
++              is prepared to accept, in octets. The size can be any
++              value.
+   --color     Force colored log output.
+   -p, --push=<PATH>=<PUSH_PATH,...>
+               Push  resources <PUSH_PATH>s  when <PATH>  is requested.
+@@ -228,6 +235,8 @@ int main(int argc, char **argv) {
+         {"mime-types-file", required_argument, &flag, 9},
+         {"no-content-length", no_argument, &flag, 10},
+         {"encoder-header-table-size", required_argument, &flag, 11},
++        {"max-frame-size", required_argument, &flag, 12},
++        {"max-header-list-size", required_argument, &flag, 13},
+         {nullptr, 0, nullptr, 0}};
+     int option_index = 0;
+     int c = getopt_long(argc, argv, "DVb:c:d:ehm:n:p:va:w:W:", long_options,
+@@ -407,6 +416,48 @@ int main(int argc, char **argv) {
+         config.encoder_header_table_size = n;
+         break;
+       }
++      case 12: {
++        // max-frame-size option
++        auto n = util::parse_uint_with_unit(optarg);
++        if (n == -1) {
++          std::cerr << "--max-frame-size: Bad option value: "
++                    << optarg << std::endl;
++          exit(EXIT_FAILURE);
++        }
++
++        if (n < (1 << 14)) {
++          std::cerr << "--max-frame-size: Value too small.  It "
++                       "should be greater than or equal to "
++                    << ((1 << 14)) << std::endl;
++          exit(EXIT_FAILURE);
++        }
++
++        if (n > (1 << 24) - 1) {
++          std::cerr << "--max-frame-size: Value too large.  It "
++                       "should be less than or equal to "
++                    << ((1 << 24) - 1) << std::endl;
++          exit(EXIT_FAILURE);
++        }
++        config.max_frame_size = n;
++        break;
++      }
++      case 13: {
++        // max-header-list-size option
++        auto n = util::parse_uint_with_unit(optarg);
++        if (n == -1) {
++          std::cerr << "--max-header-list-size: Bad option value: "
++                    << optarg << std::endl;
++          exit(EXIT_FAILURE);
++        }
++        if (n > std::numeric_limits<uint32_t>::max()) {
++          std::cerr << "--max-header-list-size: Value too large.  It "
++                       "should be less than or equal to "
++                    << std::numeric_limits<uint32_t>::max() << std::endl;
++          exit(EXIT_FAILURE);
++        }
++        config.max_header_list_size = n;
++        break;
++      }
+       }
+       break;
+     default:

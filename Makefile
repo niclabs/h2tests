@@ -44,7 +44,7 @@ TARGET	?= iotlab-a8-m3
 QUIET ?= 1
 
 # Command dependencies for running makefile
-COMMANDS += openssl wget git
+COMMANDS += openssl wget git patch
 
 TTY ?= $(if $(shell test $(BUILD_ENV) = iotlab-node && echo true),/dev/ttyA8_M3)
 IPV6_ADDR 	= 2001:dead:beef::1
@@ -84,9 +84,12 @@ get-contiki: $(CONTIKI)
 
 $(NGHTTP2)/configure: | $(BUILD)
 $(NGHTTP2)/configure: | wget
+$(NGHTTP2)/configure: | patch
 	@echo "Get nghttp2 source"
 	$(Q) cd $(BUILD) && \
 	   	wget -qO - https://github.com/nghttp2/nghttp2/releases/download/v$(NGHTTP2_VERSION)/nghttp2-$(NGHTTP2_VERSION).tar.gz | gunzip -c - | tar xvf -
+	@echo "Apply settings patch"
+	$(Q) cd $(NGHTTP2) && patch -p1 < $(TOOLS)/nghttp2-settings.patch
 
 $(NGHTTP2)/Makefile: $(NGHTTP2)/configure
 	@echo "Configure nghttp2"
