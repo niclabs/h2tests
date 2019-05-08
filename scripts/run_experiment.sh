@@ -21,8 +21,8 @@ usage() {
 
 while true; do
   case "$1" in
-    -s  |--iotlab-server)   IOTLAB_SERVER=$2; shift; shift ;;
-    -c  |--iotlab-client)   IOTLAB_CLIENT=$2; shift; shift ;;
+    -s | --iotlab-server)   IOTLAB_SERVER=$2; shift; shift ;;
+    -c | --iotlab-client)   IOTLAB_CLIENT=$2; shift; shift ;;
     -h | --help )           usage; exit 0 ;;
     -- ) shift; break ;;
     * ) break ;;
