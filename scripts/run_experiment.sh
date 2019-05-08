@@ -1,5 +1,45 @@
 #!/bin/bash
 
+SCRIPT=$0
+OPTS=`getopt -o s:c:h --long iotlab-client:,iotlab-server:,help -n 'parse-options' -- "$@"`
+
+if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
+
+eval set -- "$OPTS"
+
+usage() {
+    echo "Usage $SCRIPT [options]"
+    if [ -n "$1" ]; then
+        echo -e "Error: $1"
+    fi
+
+    echo "Options:"
+    echo "-s <n>  --iotlab-server=<n> IoT-Lab server node for running experiments"
+    echo "-c <n>, --iotlab-client=<n> IoT-Lab client node for running experiments"
+    echo "-h, --help Print this message"
+}
+
+while true; do
+  case "$1" in
+    -s  |--iotlab-server)   IOTLAB_SERVER=$2; shift; shift ;;
+    -c  |--iotlab-client)   IOTLAB_CLIENT=$2; shift; shift ;;
+    -h | --help )           usage; exit 0 ;;
+    -- ) shift; break ;;
+    * ) break ;;
+  esac
+done
+
+if [ -n "$IOTLAB_SERVER" ] && [ -n "$IOTLAB_CLIENT" ]; then
+    [[ $IOTLAB_SERVER -gt 0 ]] && [[ $IOTLAB_CLIENT -gt 0 ]] || { usage "Both, server and client must be greater than 0"; exit 1; }
+
+    IOTLAB=true
+
+    # Parameters for make
+    MAKE_PREFIX_SERVER="iotlab-node-$IOTLAB_SERVER-"
+    MAKE_PREFIX_SERVER="iotlab-node-$IOTLAB_CLIENT-"
+    MAKE_SUFFIX="-nop"
+fi
+
 # Default directories
 BIN=${BIN:-"./bin"}
 WWW=${WWW:-"./build/www"}
@@ -18,10 +58,6 @@ H2LOAD_REQUESTS=131072
 #H2LOAD_CLIENTS=1
 #H2LOAD_REQUESTS=1
 
-# Parameters for make
-MAKE_PREFIX_SERVER=${MAKE_PREFIX_SERVER:-""} # iotlab-node-1
-MAKE_PREFIX_CLIENT=${MAKE_PREFIX_CLIENT:-""} # iotlab-node-2
-MAKE_SUFFIX=${MAKE_SUFFIX:-""} # -nop
 
 
 # Fixed HTTP2 parameters
