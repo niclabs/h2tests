@@ -111,7 +111,7 @@ nghttpd: $(BIN)/nghttpd $(SERVER_CERT) $(SERVER_KEY)
 		$(if $(HEADER_TABLE_SIZE),--header-table-size=$(HEADER_TABLE_SIZE)) \
 		$(if $(WINDOW_BITS),--window-bits=$(WINDOW_BITS)) \
 		$(if $(MAX_FRAME_SIZE),--max-frame-size=$(MAX_FRAME_SIZE)) \
-		$(if $(MAX_HEADER_LIST_SIZE),--max-header-list-size=$(HEADER_LIST_SIZE))
+		$(if $(MAX_HEADER_LIST_SIZE),--max-header-list-size=$(MAX_HEADER_LIST_SIZE))
 
 .PHONY: h2load
 h2load: $(BIN)/h2load
@@ -122,7 +122,7 @@ h2load: $(BIN)/h2load
 		$(if $(HEADER_TABLE_SIZE),--header-table-size=$(HEADER_TABLE_SIZE)) \
 		$(if $(WINDOW_BITS),--window-bits=$(WINDOW_BITS)) \
 		$(if $(MAX_FRAME_SIZE),--max-frame-size=$(MAX_FRAME_SIZE)) \
-		$(if $(MAX_HEADER_LIST_SIZE),--max-header-list-size=$(HEADER_LIST_SIZE))
+		$(if $(MAX_HEADER_LIST_SIZE),--max-header-list-size=$(MAX_HEADER_LIST_SIZE))
 
 
 .PHONY: clean
