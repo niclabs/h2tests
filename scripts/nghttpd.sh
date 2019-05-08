@@ -2,7 +2,7 @@
 
 SCRIPT=$0
 PID=$$
-OPTS=`getopt -o vhd: --long max-concurrent-streams,header-table-size,window-bits,max-frame-size,max-header-list-size,help: -n 'parse-options' -- "$@"`
+OPTS=`getopt -o vhd: --long max-concurrent-streams:,header-table-size:,window-bits:,max-frame-size:,max-header-list-size:,help -n 'parse-options' -- "$@"`
 
 if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
 
