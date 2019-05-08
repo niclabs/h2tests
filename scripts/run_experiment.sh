@@ -32,12 +32,12 @@ done
 if [ -n "$IOTLAB_SERVER" ] && [ -n "$IOTLAB_CLIENT" ]; then
     [[ $IOTLAB_SERVER -gt 0 ]] && [[ $IOTLAB_CLIENT -gt 0 ]] || { usage "Both, server and client must be greater than 0"; exit 1; }
 
-    IOTLAB=true
+    IOTLAB=1
 
     # Parameters for make
     MAKE_PREFIX_SERVER="iotlab-node-$IOTLAB_SERVER-"
-    MAKE_PREFIX_SERVER="iotlab-node-$IOTLAB_CLIENT-"
-    MAKE_SUFFIX="-nop"
+    MAKE_PREFIX_CLIENT="iotlab-node-$IOTLAB_CLIENT-"
+    MAKE_ENV="PREFIX_DISABLE=1"
 fi
 
 # Default directories
