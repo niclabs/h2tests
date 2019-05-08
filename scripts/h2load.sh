@@ -10,6 +10,7 @@ eval set -- "$OPTS"
 
 # Default directories
 BIN=${BIN:-"./bin"}
+SCRIPTS=${SCRIPTS:-"./scripts"}
 
 MAX_CONCURRENT_STREAMS=1
 HEADER_TABLE_SIZE=4096
@@ -77,7 +78,7 @@ summary() {
     echo "max-header-list-size: $MAX_HEADER_LIST_SIZE"
     echo -e "columns: time\tcpu\tmem"
 
-    awk -f ./scripts/h2load.awk <&0
+    awk -f $SCRIPTS/h2load.awk <&0
 }
 
 # Execute server and store data
