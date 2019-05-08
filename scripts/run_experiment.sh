@@ -58,8 +58,6 @@ H2LOAD_REQUESTS=131072
 #H2LOAD_CLIENTS=1
 #H2LOAD_REQUESTS=1
 
-
-
 # Fixed HTTP2 parameters
 MAX_CONCURRENT_STREAMS=1
 
@@ -86,6 +84,7 @@ cleanup() {
 }
 
 nghttpd() {
+    ENV="$MAKE_ENV "
     ENV="HTTP_PORT=$HTTP_PORT IPV6_ADDR=$IPV6_ADDR"
     ENV="$ENV MAX_CONCURRENT_STREAMS=$MAX_CONCURRENT_STREAMS HEADER_TABLE_SIZE=$1 WINDOW_BITS=$2 MAX_FRAME_SIZE=$3"
 
@@ -94,10 +93,11 @@ nghttpd() {
     fi
 
     echo "$ENV make ${MAKE_PREFIX_SERVER}nghttpd" >&2
-    exec env $ENV make ${MAKE_PREFIX_SERVER}nghttpd${MAKE_SUFFIX}
+    exec env $ENV make ${MAKE_PREFIX_SERVER}nghttpd
 }
 
 h2load() {
+    ENV="$MAKE_ENV "
     ENV="HTTP_PORT=$HTTP_PORT IPV6_ADDR=$IPV6_ADDR"
     ENV="$ENV MAX_CONCURRENT_STREAMS=$MAX_CONCURRENT_STREAMS HEADER_TABLE_SIZE=$1 WINDOW_BITS=$2 MAX_FRAME_SIZE=$3"
 
@@ -108,7 +108,7 @@ h2load() {
     ENV="$ENV CLIENTS=$H2LOAD_CLIENTS REQUESTS=$H2LOAD_REQUESTS"
 
     echo "$ENV make ${MAKE_PREFIX_CLIENT}h2load" >&2
-    exec env $ENV make ${MAKE_PREFIX_CLIENT}h2load${MAKE_SUFFIX}
+    exec env $ENV make ${MAKE_PREFIX_CLIENT}h2load
 }
 
 run_experiment() {
@@ -244,7 +244,9 @@ mkdir -p $RESULTS/aggregate
 mkdir -p $WWW
 
 # RUN experiments
-test_header_table_size
-test_window_bits
-test_max_frame_size
-test_max_header_list_size
+#test_header_table_size
+#test_window_bits
+#test_max_frame_size
+#test_max_header_list_size
+
+run_experiment 4096 16 16384 ""  $RESULTS/exp/tests-experiment.txt
