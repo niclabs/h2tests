@@ -77,7 +77,7 @@ summary() {
     echo "max-header-list-size: $MAX_HEADER_LIST_SIZE"
     echo -e "columns: time\tcpu\tmem"
 
-    awk -f ./scripts/process_h2load_output.awk <&0
+    awk -f ./scripts/h2load.awk <&0
 }
 
 # Execute server and store data
