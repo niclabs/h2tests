@@ -1,5 +1,31 @@
 BEGIN {}
 
+# Round fractional parts smaller than 1e-14 to 0
+function zero(x,   ival, aval, fraction)
+{
+   ival = int(x)    # integer part, int() truncates
+
+   # see if fractional part
+   if (ival == x)   # no fraction
+      return ival   # ensure no decimals
+
+   if (x < 0) {
+      aval = -x     # absolute value
+      ival = int(aval)
+      fraction = aval - ival
+      if (fraction >= 1e-14)
+         return int(x) + fraction   # -2.5 --> -3
+      else
+         return int(x)       # -2.3 --> -2
+   } else {
+      fraction = x - ival
+      if (fraction >= 1e-14)
+         return ival + fraction
+      else
+         return ival
+   }
+}
+
 $0 ~/^Makefile:/ {}
 
 FNR > 8 {
@@ -17,7 +43,7 @@ FNR > 8 {
 END {
     # printf "%-8s%-8s%-8s%-8s", "cpu-avg", "cpu-std", "mem-avg", "mem-std"
     if (rows > 0) {
-	    printf "%-7s %-7s %-7s %-7s\n", cpu / rows,  sqrt(cpu_sq / rows - (cpu / rows) ** 2), mem / rows, sqrt(mem_sq / rows - (mem / rows) ** 2)
+	    printf "%-7s %-7s %-7s %-7s\n", cpu / rows,  sqrt(zero((cpu_sq / rows) - (cpu / rows) ** 2)), mem / rows, sqrt(zero((mem_sq / rows) - (mem / rows) ** 2))
     }
     else {
         printf "%-7s %-7s %-7s %-7s\n", 0, 0, 0, 0
