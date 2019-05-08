@@ -113,7 +113,7 @@ run_experiment() {
     fi
 
     # total success failed req-time-min req-time-max req-time-avg req-time-std
-    awk 'NR > 9 {printf "%-5s %-8s %-6s %-12s %-12s %-12s %-12s ", $1, $2, $3, $4, $5, $6, $7}' $H2LOAD_OUT >> $5
+    awk 'NR > 9 {printf "%-8s %-8s %-8s %-12s %-12s %-12s %-12s ", $1, $2, $3, $4, $5, $6, $7}' $H2LOAD_OUT >> $5
 
     # cpu-avg cpu-std mem-avg mem-std
     awk -f $SCRIPTS/nghttpd.awk -v start_time=$start_time -v end_time=$end_time $NGHTTPD_OUT >> $5
@@ -127,8 +127,8 @@ headers() {
     # Print headers
     printf "%-20s %-20s " "start-time" "end-time"
     printf "%-17s %-11s %-14s %-20s " "header-table-size" "window-bits" "max-frame-size" "max-header-list-size"
-    printf "%-5s %-8s %-6s %-12s %-12s %-12s %-12s " "total" "success" "failed" "req-time-min" "req-time-max" "req-time-avg" "req-time-std"
-    printf "%-7s %-7s %-7s %-7s\n" "cpu-avg" "cpu-std" "mem-avg" "mem-std"
+    printf "%-8s %-8s %-8s %-12s %-12s %-12s %-12s " "total" "success" "failed" "req-time-min" "req-time-max" "req-time-avg" "req-time-std"
+    printf "%-10s %-10s %-10s %-10s\n" "cpu-avg" "cpu-std" "mem-avg" "mem-std"
 }
 
 test_header_table_size() {

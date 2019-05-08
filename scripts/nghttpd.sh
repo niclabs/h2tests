@@ -75,7 +75,8 @@ summary() {
     echo "window-bits: $WINDOW_BITS"
     echo "max-frame-size: $MAX_FRAME_SIZE"
     echo "max-header-list-size: $MAX_HEADER_LIST_SIZE"
-    echo -e "timestamp\t\tcpu\tmem"
+    echo ""
+    printf "%-22s %-6s %-6s\n" "timestamp" "cpu" "mem"
     cat /tmp/$PID-nghttpd.log
 }
 
@@ -91,7 +92,7 @@ trap summary SIGINT
 
 # Execute server and store data
 START_TIME=$(date +%s.%N)
-top -b -d 0.01 > >(grep  "nghttpd$" | awk '{print system("echo -n `date +%s.%N`") "\t" $9 "\t" $10}' > /tmp/$PID-nghttpd.log) &
+top -b -d 0.01 > >(grep  "nghttpd$" | awk '{printf "%-2s %-6s %-6s\n", system("echo -n `date +%s.%N`"), $9, $10}' > /tmp/$PID-nghttpd.log) &
 
 TOP_PID=$!
 nghttpd $* &

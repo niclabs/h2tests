@@ -28,7 +28,7 @@ function zero(x,   ival, aval, fraction)
 
 $0 ~/^Makefile:/ {}
 
-FNR > 8 {
+FNR > 9 {
 	if ($1 >= start_time && $1 <= end_time) {
 		cpu += $2
 		mem += $3
@@ -43,9 +43,9 @@ FNR > 8 {
 END {
     # printf "%-8s%-8s%-8s%-8s", "cpu-avg", "cpu-std", "mem-avg", "mem-std"
     if (rows > 0) {
-	    printf "%-7s %-7s %-7s %-7s\n", cpu / rows,  sqrt(zero((cpu_sq / rows) - (cpu / rows) ** 2)), mem / rows, sqrt(zero((mem_sq / rows) - (mem / rows) ** 2))
+	    printf "%-10.6f %-10.6f %-10.6f %-10.6f\n", cpu / rows,  sqrt(zero((cpu_sq / rows) - (cpu / rows) ** 2)), mem / rows, sqrt(zero((mem_sq / rows) - (mem / rows) ** 2))
     }
     else {
-        printf "%-7s %-7s %-7s %-7s\n", 0, 0, 0, 0
+        printf "%-10s %-10s %-10s %-10s\n", 0, 0, 0, 0
     }
 }
