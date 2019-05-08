@@ -2,6 +2,10 @@
 # Local build configuration
 #######################################################################
 
+# Set local variables to the value of RUNTIME variables (prefixed with R_)
+# this is useful to define variables that must be passed to target build environment
+$(foreach v, $(filter R_%,$(.VARIABLES)),$(eval $(subst R_,,$(v)=$($(v)))))
+
 # Configure iot-lab experiment parameters
 IOTLAB_ARCHI ?= a8:at86rf231
 IOTLAB_DURATION ?= 180
