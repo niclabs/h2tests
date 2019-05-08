@@ -18,7 +18,7 @@ H2LOAD_REQUESTS=131072
 
 # Parameters for make
 MAKE_PREFIX_SERVER=${MAKE_PREFIX_SERVER:-""} # iotlab-node-1
-MAKE_PREFIX_CLIENT=${MAKE_PREFIX:_CLIENT-""} # iotlab-node-2
+MAKE_PREFIX_CLIENT=${MAKE_PREFIX_CLIENT:-""} # iotlab-node-2
 MAKE_SUFFIX=${MAKE_SUFFIX:-""} # -nop
 
 
