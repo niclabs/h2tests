@@ -117,6 +117,7 @@ nghttpd: $(BIN)/nghttpd $(SERVER_CERT) $(SERVER_KEY)
 h2load: $(BIN)/h2load
 	$(Q) BIN=$(BIN) SCRIPTS=$(SCRIPTS) $(SCRIPTS)/h2load.sh https://[$(IPV6_ADDR)]:$(HTTP_PORT) \
 		$(if $(CLIENTS),--clients=$(CLIENTS)) \
+		$(if $(REQUESTS),--requests=$(REQUESTS)) \
 		$(if $(MAX_CONCURRENT_STREAMS),--max-concurrent-streams=$(MAX_CONCURRENT_STREAMS)) \
 		$(if $(HEADER_TABLE_SIZE),--header-table-size=$(HEADER_TABLE_SIZE)) \
 		$(if $(WINDOW_BITS),--window-bits=$(WINDOW_BITS)) \
