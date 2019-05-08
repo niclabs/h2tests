@@ -2,7 +2,7 @@
 
 SCRIPT=$0
 PID=$$
-OPTS=`getopt -o hvn:c: --long max-concurrent-streams,header-table-size,window-bits,max-frame-size,max-header-list-size,help: -n 'parse-options' -- "$@"`
+OPTS=`getopt -o hvn:c: --long max-concurrent-streams:,header-table-size:,window-bits:,max-frame-size:,max-header-list-size:,help -n 'parse-options' -- "$@"`
 
 if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
 
@@ -63,7 +63,7 @@ h2load() {
         CMD="$CMD --max-header-list-size=$MAX_HEADER_LIST_SIZE"
     fi
 
-    exec $CMD $*
+    eval $CMD $*
 }
 
 summary() {
@@ -83,4 +83,5 @@ summary() {
 
 # Execute server and store data
 START_TIME=$(date +%s.%N)
-h2load $* | summary
+h2load $* > /tmp/h2load-$PID.log
+summary < /tmp/h2load-$PID.log
