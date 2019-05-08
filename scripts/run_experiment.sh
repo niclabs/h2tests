@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # Default directories
 BIN=${BIN:-"./bin"}
 WWW=${WWW:-"./build/www"}
