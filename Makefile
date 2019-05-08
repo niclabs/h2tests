@@ -26,10 +26,11 @@ HTTP_PORT 					?= 80
 HTTP2_MAX_CONCURRENT_STREAMS 	?= 1
 
 # Build directories
-BIN   ?= $(CURDIR)/bin
-BUILD ?= $(CURDIR)/build
-TOOLS ?= $(CURDIR)/tools
-WWW   ?= $(BUILD)/www/
+BIN   	?= $(CURDIR)/bin
+BUILD 	?= $(CURDIR)/build
+TOOLS 	?= $(CURDIR)/tools
+SCRIPTS ?= $(CURDIR)/scripts
+WWW   	?= $(BUILD)/www/
 
 # Build targets
 CONTIKI  ?= $(BUILD)/contiki
