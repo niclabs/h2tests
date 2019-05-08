@@ -74,7 +74,7 @@ h2load() {
 run_experiment() {
     setup
 
-    SUFFIX="$1-$2-$3-default"
+    SUFFIX="$1-$2-$3-d"
     if [ -n "$4" ]; then
         SUFFIX="$1-$2-$3-$4"
     fi
@@ -109,7 +109,7 @@ run_experiment() {
     if [ -n "$4" ]; then
        printf "%-20s " $4 >> $5
     else
-       printf "%-20s " "-" >> $5
+       printf "%-20s " "d" >> $5
     fi
 
     # total success failed req-time-min req-time-max req-time-avg req-time-std
