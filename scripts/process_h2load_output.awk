@@ -14,9 +14,6 @@ BEGIN {
     printf "stdev-time"
     printf "\n"
 }
-function ltrim(s) { sub(/^./, "", s); return s }
-function rtrim(s) { sub(/.$/, "", s); return s }
-function trim(s) { return rtrim(ltrim(s)); }
 
 $0 ~ /^requests:/ { results = $2 "\t" $8 "\t" $10 }
 $0 ~ /^time for request:/ { results = results "\t" $4 "\t\t" $5 "\t" $6  "\t" $7 }
