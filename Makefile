@@ -106,7 +106,7 @@ build-nghttp2: $(BIN)/nghttpd
 
 .PHONY: nghttpd
 nghttpd: $(BIN)/nghttpd $(SERVER_CERT) $(SERVER_KEY)
-	$(Q) $(SCRIPTS)/nghttpd.sh -d $(WWW) $(HTTP_PORT) $(SERVER_KEY) $(SERVER_CERT) \
+	$(Q) BIN=$(BIN) $(SCRIPTS)/nghttpd.sh -d $(WWW) $(HTTP_PORT) $(SERVER_KEY) $(SERVER_CERT) \
 		$(if $(MAX_CONCURRENT_STREAMS),--max-concurrent-streams=$(MAX_CONCURRENT_STREAMS)) \
 		$(if $(HEADER_TABLE_SIZE),--header-table-size=$(HEADER_TABLE_SIZE)) \
 		$(if $(WINDOW_BITS),--window-bits=$(WINDOW_BITS)) \
@@ -115,7 +115,7 @@ nghttpd: $(BIN)/nghttpd $(SERVER_CERT) $(SERVER_KEY)
 
 .PHONY: h2load
 h2load: $(BIN)/h2load
-	$(Q) $(SCRIPTS)/h2load.sh https://[$(IPV6_ADDR)]:$(HTTP_PORT) \
+	$(Q) BIN=$(BIN) SCRIPTS=$(SCRIPTS) $(SCRIPTS)/h2load.sh https://[$(IPV6_ADDR)]:$(HTTP_PORT) \
 		$(if $(CLIENTS),--clients=$(CLIENTS)) \
 		$(if $(MAX_CONCURRENT_STREAMS),--max-concurrent-streams=$(MAX_CONCURRENT_STREAMS)) \
 		$(if $(HEADER_TABLE_SIZE),--header-table-size=$(HEADER_TABLE_SIZE)) \
