@@ -22,9 +22,6 @@ NGHTTP2  			?= $(BUILD)/nghttp2-$(NGHTTP2_VERSION)
 #http parameters
 HTTP_PORT 					?= 80
 
-# http2 configuration
-HTTP2_MAX_CONCURRENT_STREAMS 	?= 1
-
 # Build directories
 BIN   	?= $(CURDIR)/bin
 BUILD 	?= $(CURDIR)/build
@@ -109,26 +106,22 @@ build-nghttp2: $(BIN)/nghttpd
 
 .PHONY: nghttpd
 nghttpd: $(BIN)/nghttpd $(SERVER_CERT) $(SERVER_KEY)
-	$(Q) $(BIN)/nghttpd -v -d $(WWW) $(HTTP_PORT) $(SERVER_KEY) $(SERVER_CERT) \
-		$(if $(HTTP2_MAX_CONCURRENT_STREAMS),--max-concurrent-streams=$(HTTP2_MAX_CONCURRENT_STREAMS)) \
-		$(if $(HTTP2_HEADER_TABLE_SIZE),--encoder-header-table-size=$(HTTP2_HEADER_TABLE_SIZE)) \
-		$(if $(HTTP2_HEADER_TABLE_SIZE),--header-table-size=$(HTTP2_HEADER_TABLE_SIZE)) \
-		$(if $(HTTP2_WINDOW_BITS),--window-bits=$(HTTP2_WINDOW_BITS)) \
-		$(if $(HTTP2_WINDOW_BITS),--connection-window-bits=$(HTTP2_WINDOW_BITS)) \
-		$(if $(HTTP2_MAX_FRAME_SIZE),--max-frame-size=$(HTTP2_MAX_FRAME_SIZE)) \
-		$(if $(HTTP2_MAX_HEADER_LIST_SIZE),--max-header-list-size=$(HTTP2_HEADER_LIST_SIZE))
+	$(Q) $(SCRIPTS)/nghttpd.sh -d $(WWW) $(HTTP_PORT) $(SERVER_KEY) $(SERVER_CERT) \
+		$(if $(MAX_CONCURRENT_STREAMS),--max-concurrent-streams=$(MAX_CONCURRENT_STREAMS)) \
+		$(if $(HEADER_TABLE_SIZE),--header-table-size=$(HEADER_TABLE_SIZE)) \
+		$(if $(WINDOW_BITS),--window-bits=$(WINDOW_BITS)) \
+		$(if $(MAX_FRAME_SIZE),--max-frame-size=$(MAX_FRAME_SIZE)) \
+		$(if $(MAX_HEADER_LIST_SIZE),--max-header-list-size=$(HEADER_LIST_SIZE))
 
 .PHONY: h2load
 h2load: $(BIN)/h2load
-	$(Q) $(BIN)/h2load -v https://[$(IPV6_ADDR)]:$(HTTP_PORT) \
-		$(if $(HTTP2_CLIENTS),--clients=$(HTTP2_CLIENTS)) \
-		$(if $(HTTP2_MAX_CONCURRENT_STREAMS),--max-concurrent-streams=$(HTTP2_MAX_CONCURRENT_STREAMS)) \
-		$(if $(HTTP2_HEADER_TABLE_SIZE),--encoder-header-table-size=$(HTTP2_HEADER_TABLE_SIZE)) \
-		$(if $(HTTP2_HEADER_TABLE_SIZE),--header-table-size=$(HTTP2_HEADER_TABLE_SIZE)) \
-		$(if $(HTTP2_WINDOW_BITS),--window-bits=$(HTTP2_WINDOW_BITS)) \
-		$(if $(HTTP2_WINDOW_BITS),--connection-window-bits=$(HTTP2_WINDOW_BITS)) \
-		$(if $(HTTP2_MAX_FRAME_SIZE),--max-frame-size=$(HTTP2_MAX_FRAME_SIZE)) \
-		$(if $(HTTP2_MAX_HEADER_LIST_SIZE),--max-header-list-size=$(HTTP2_HEADER_LIST_SIZE))
+	$(Q) $(SCRIPTS)/h2load.sh https://[$(IPV6_ADDR)]:$(HTTP_PORT) \
+		$(if $(CLIENTS),--clients=$(CLIENTS)) \
+		$(if $(MAX_CONCURRENT_STREAMS),--max-concurrent-streams=$(MAX_CONCURRENT_STREAMS)) \
+		$(if $(HEADER_TABLE_SIZE),--header-table-size=$(HEADER_TABLE_SIZE)) \
+		$(if $(WINDOW_BITS),--window-bits=$(WINDOW_BITS)) \
+		$(if $(MAX_FRAME_SIZE),--max-frame-size=$(MAX_FRAME_SIZE)) \
+		$(if $(MAX_HEADER_LIST_SIZE),--max-header-list-size=$(HEADER_LIST_SIZE))
 
 
 .PHONY: clean
