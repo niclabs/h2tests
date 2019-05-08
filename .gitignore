@@ -166,6 +166,7 @@ LOG_OPENOCD
 deps/
 bin/
 build/
+results/
 
 # Application specific files
 .vagrant
