@@ -54,6 +54,162 @@ index db2137b..0479947 100644
    uint16_t port;
    bool verbose;
    bool daemon;
+diff --git a/src/h2load.cc b/src/h2load.cc
+index 9e2592a..a6146bb 100644
+--- a/src/h2load.cc
++++ b/src/h2load.cc
+@@ -81,6 +81,8 @@ Config::Config()
+       max_concurrent_streams(1),
+       window_bits(30),
+       connection_window_bits(30),
++      max_frame_size(16384),
++      max_header_list_size(-1),
+       rate(0),
+       rate_period(1.0),
+       duration(0.0),
+@@ -1755,6 +1757,55 @@ int parse_header_table_size(uint32_t &dst, const char *opt,
+ } // namespace
+ 
+ namespace {
++int parse_max_frame_size(uint32_t &dst, const char *opt,
++                         const char *optarg) {
++  auto n = util::parse_uint_with_unit(optarg);
++  if (n == -1) {
++    std::cerr << "--max-frame-size: Bad option value: "
++              << optarg << std::endl;
++    return -1;
++  }
++
++  if (n < (1 << 14)) {
++    std::cerr << "--max-frame-size: Value too small.  It "
++                 "should be greater than or equal to "
++              << ((1 << 14)) << std::endl;
++    return -1;
++  }
++
++  if (n > (1 << 24) - 1) {
++    std::cerr << "--max-frame-size: Value too large.  It "
++                 "should be less than or equal to "
++              << ((1 << 24) - 1) << std::endl;
++    return -1;
++  }
++  dst = n;
++  return 0;
++}
++} // namespace
++
++
++namespace {
++int parse_max_header_list_size(uint32_t &dst, const char *opt,
++                               const char *optarg) {
++    auto n = util::parse_uint_with_unit(optarg);
++    if (n == -1) {
++      std::cerr << "--max-header-list-size: Bad option value: "
++                << optarg << std::endl;
++      return -1;
++    }
++    if (n > std::numeric_limits<uint32_t>::max()) {
++      std::cerr << "--max-header-list-size: Value too large.  It "
++                   "should be less than or equal to "
++                << std::numeric_limits<uint32_t>::max() << std::endl;
++      return -1;
++    }
++    dst = n;
++    return 0;
++}
++} // namespace
++
++namespace {
+ void print_version(std::ostream &out) {
+   out << "h2load nghttp2/" NGHTTP2_VERSION << std::endl;
+ }
+@@ -1824,6 +1875,16 @@ Options:
+               Sets the stream level initial window size to (2**<N>)-1.
+               Default: )"
+       << config.window_bits << R"(
++  --max-frame-size=<SIZE>
++              Specify the size of the largest frame payload that the
++              sender is willing to receive. The size can be any value
++              between 2**14 and 2**24-1.)"
++      << util::utos_unit(config.max_frame_size) << R"(
++  --max-header-list-size=<SIZE>
++              Specify the maximum size of header list that the sender
++              is prepared to accept, in octets. The size can be any
++              value.)"
++      << util::utos_unit(config.max_header_list_size) << R"(
+   -W, --connection-window-bits=<N>
+               Sets  the  connection  level   initial  window  size  to
+               (2**<N>)-1.
+@@ -1996,6 +2057,8 @@ int main(int argc, char **argv) {
+         {"header-table-size", required_argument, &flag, 7},
+         {"encoder-header-table-size", required_argument, &flag, 8},
+         {"warm-up-time", required_argument, &flag, 9},
++        {"max-frame-size", required_argument, &flag, 10},
++        {"max-header-list-size", required_argument, &flag, 11},
+         {nullptr, 0, nullptr, 0}};
+     int option_index = 0;
+     auto c = getopt_long(argc, argv,
+@@ -2219,6 +2282,18 @@ int main(int argc, char **argv) {
+           exit(EXIT_FAILURE);
+         }
+         break;
++      case 10:
++        // max-frame-size option
++        if (parse_max_frame_size(config.max_frame_size,
++                                    "max-frame-size", optarg) != 0) {
++          exit(EXIT_FAILURE);
++        }
++      case 11:
++        // max-header-list-size option
++        if (parse_max_header_list_size(config.max_header_list_size,
++                                    "max-header-list-size", optarg) != 0) {
++          exit(EXIT_FAILURE);
++        }
+       }
+       break;
+     default:
+diff --git a/src/h2load.h b/src/h2load.h
+index bde36e8..20ff8e0 100644
+--- a/src/h2load.h
++++ b/src/h2load.h
+@@ -81,6 +81,8 @@ struct Config {
+   ssize_t max_concurrent_streams;
+   size_t window_bits;
+   size_t connection_window_bits;
++  uint32_t max_frame_size;
++  uint32_t max_header_list_size;
+   // rate at which connections should be made
+   size_t rate;
+   ev_tstamp rate_period;
+diff --git a/src/h2load_http2_session.cc b/src/h2load_http2_session.cc
+index 28ad456..fe4990a 100644
+--- a/src/h2load_http2_session.cc
++++ b/src/h2load_http2_session.cc
+@@ -235,13 +235,22 @@ void Http2Session::on_connect() {
+ 
+   nghttp2_option_del(opt);
+ 
+-  std::array<nghttp2_settings_entry, 3> iv;
+-  size_t niv = 2;
++  std::array<nghttp2_settings_entry, 5> iv;
++  size_t niv = 3;
+   iv[0].settings_id = NGHTTP2_SETTINGS_ENABLE_PUSH;
+   iv[0].value = 0;
+   iv[1].settings_id = NGHTTP2_SETTINGS_INITIAL_WINDOW_SIZE;
+   iv[1].value = (1 << config->window_bits) - 1;
+ 
++  iv[2].settings_id = NGHTTP2_SETTINGS_MAX_FRAME_SIZE;
++  iv[2].value = config->max_frame_size;
++
++  if (config->max_header_list_size >= 0) {
++    iv[niv].settings_id = NGHTTP2_SETTINGS_MAX_HEADER_LIST_SIZE;
++    iv[niv].value = config->max_header_list_size;
++    ++niv;
++  }
++
+   if (config->header_table_size != NGHTTP2_DEFAULT_HEADER_TABLE_SIZE) {
+     iv[niv].settings_id = NGHTTP2_SETTINGS_HEADER_TABLE_SIZE;
+     iv[niv].value = config->header_table_size;
 diff --git a/src/nghttp.cc b/src/nghttp.cc
 index 7aaa65b..4c59c4b 100644
 --- a/src/nghttp.cc
