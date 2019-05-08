@@ -2,7 +2,7 @@
 
 SCRIPT=$0
 PID=$$
-OPTS=`getopt -o hn:c: --long header-table-size,window-bits,max-frame-size,max-header-list-size,help: -n 'parse-options' -- "$@"`
+OPTS=`getopt -o hn:c: --long max-concurrent-streams,header-table-size,window-bits,max-frame-size,max-header-list-size,help: -n 'parse-options' -- "$@"`
 
 if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
 
@@ -11,13 +11,14 @@ eval set -- "$OPTS"
 # Default directories
 BIN=${BIN:-"./bin"}
 
-#MAX_CONCURRENT_STREAMS=1
-#HEADER_TABLE_SIZE=4096
-#WINDOW_BITS=16
-#MAX_FRAME_SIZE=16384
+MAX_CONCURRENT_STREAMS=1
+HEADER_TABLE_SIZE=4096
+WINDOW_BITS=16
+MAX_FRAME_SIZE=16384
 
 while true; do
   case "$1" in
+    --max-concurent-streams)    MAX_CONCURRENT_STREAMS=$2; shift; shift ;;
     --header-table-size)        HEADER_TABLE_SIZE=$2; shift; shift ;;
     --window-bits)              WINDOW_BITS=$2; shift; shift ;;
     --max-frame-size)           MAX_FRAME_SIZE=$2; shift; shift ;;
@@ -40,6 +41,10 @@ usage() {
 
 h2load() {
 	CMD="$BIN/h2load"
+
+	if [ -n "$MAX_CONCURRENT_STREAMS" ]; then
+        CMD="$CMD --max-concurrent-streams=$MAX_CONCURRENT_STREAMS"
+    fi
 
 	if [ -n "$HEADER_TABLE_SIZE" ]; then
         CMD="$CMD --header-table-size=$HEADER_TABLE_SIZE --encoder-header-table-size=$HEADER_TABLE_SIZE"
@@ -65,6 +70,7 @@ summary() {
 
     echo "start-time: $START_TIME"
     echo "end-time: $END_TIME"
+    echo "max-concurrent-streams: $MAX_CONCURRENT_STREAMS"
     echo "header-table-size: $HEADER_TABLE_SIZE"
     echo "window-bits: $WINDOW_BITS"
     echo "max-frame-size: $MAX_FRAME_SIZE"
