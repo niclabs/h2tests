@@ -55,7 +55,7 @@ index db2137b..0479947 100644
    bool verbose;
    bool daemon;
 diff --git a/src/h2load.cc b/src/h2load.cc
-index 9e2592a..a6146bb 100644
+index 9e2592a..30af103 100644
 --- a/src/h2load.cc
 +++ b/src/h2load.cc
 @@ -81,6 +81,8 @@ Config::Config()
@@ -71,7 +71,7 @@ index 9e2592a..a6146bb 100644
  } // namespace
  
  namespace {
-+int parse_max_frame_size(uint32_t &dst, const char *opt,
++int parse_max_frame_size(ssize_t &dst, const char *opt,
 +                         const char *optarg) {
 +  auto n = util::parse_uint_with_unit(optarg);
 +  if (n == -1) {
@@ -100,7 +100,7 @@ index 9e2592a..a6146bb 100644
 +
 +
 +namespace {
-+int parse_max_header_list_size(uint32_t &dst, const char *opt,
++int parse_max_header_list_size(ssize_t &dst, const char *opt,
 +                               const char *optarg) {
 +    auto n = util::parse_uint_with_unit(optarg);
 +    if (n == -1) {
@@ -149,7 +149,7 @@ index 9e2592a..a6146bb 100644
          {nullptr, 0, nullptr, 0}};
      int option_index = 0;
      auto c = getopt_long(argc, argv,
-@@ -2219,6 +2282,18 @@ int main(int argc, char **argv) {
+@@ -2219,6 +2282,20 @@ int main(int argc, char **argv) {
            exit(EXIT_FAILURE);
          }
          break;
@@ -159,25 +159,27 @@ index 9e2592a..a6146bb 100644
 +                                    "max-frame-size", optarg) != 0) {
 +          exit(EXIT_FAILURE);
 +        }
++        break;
 +      case 11:
 +        // max-header-list-size option
 +        if (parse_max_header_list_size(config.max_header_list_size,
 +                                    "max-header-list-size", optarg) != 0) {
 +          exit(EXIT_FAILURE);
 +        }
++        break;
        }
        break;
      default:
 diff --git a/src/h2load.h b/src/h2load.h
-index bde36e8..20ff8e0 100644
+index bde36e8..6799896 100644
 --- a/src/h2load.h
 +++ b/src/h2load.h
 @@ -81,6 +81,8 @@ struct Config {
    ssize_t max_concurrent_streams;
    size_t window_bits;
    size_t connection_window_bits;
-+  uint32_t max_frame_size;
-+  uint32_t max_header_list_size;
++  ssize_t max_frame_size;
++  ssize_t max_header_list_size;
    // rate at which connections should be made
    size_t rate;
    ev_tstamp rate_period;
