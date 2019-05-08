@@ -93,6 +93,7 @@ nghttpd() {
         ENV="$ENV MAX_HEADER_LIST_SIZE=$4"
     fi
 
+    echo "$ENV make ${MAKE_PREFIX_SERVER}nghttpd" >&2
     exec env $ENV make ${MAKE_PREFIX_SERVER}nghttpd${MAKE_SUFFIX}
 }
 
@@ -106,10 +107,12 @@ h2load() {
 
     ENV="$ENV CLIENTS=$H2LOAD_CLIENTS REQUESTS=$H2LOAD_REQUESTS"
 
+    echo "$ENV make ${MAKE_PREFIX_CLIENT}h2load" >&2
     exec env $ENV make ${MAKE_PREFIX_CLIENT}h2load${MAKE_SUFFIX}
 }
 
 run_experiment() {
+    echo "starting experiment with paramenters ($1,$2,$3,$4)" >&2
     setup
 
     SUFFIX="$1-$2-$3-d"
@@ -128,8 +131,11 @@ run_experiment() {
     sleep 2
 
     # Run h2load
+    echo "Running h2load" >&2
     h2load $1 $2 $3 $4 > $H2LOAD_OUT &
     wait $!
+
+    echo "h2load finished, terminating server and calculating results" >&2
 
     # Kill server
     kill $NGHTTPD_PID
@@ -158,6 +164,7 @@ run_experiment() {
 
     # TODO: get consumption data if running on iotlab-node
 
+    echo "finishing experiment with paramenters ($1,$2,$3,$4)" >&2
     cleanup
 }
 
