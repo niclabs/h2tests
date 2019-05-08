@@ -75,7 +75,7 @@ summary() {
     echo "window-bits: $WINDOW_BITS"
     echo "max-frame-size: $MAX_FRAME_SIZE"
     echo "max-header-list-size: $MAX_HEADER_LIST_SIZE"
-    echo -e "columns: time\tcpu\tmem"
+    echo -e "timestamp\t\tcpu\tmem"
     cat /tmp/$PID-nghttpd.log
 }
 
