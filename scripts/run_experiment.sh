@@ -303,6 +303,20 @@ test_max_header_list_size() {
     done
 }
 
+launch_experiment() {
+    # check if experiment is running
+    local IOTLAB_ID_TMP=$(make iotlab-running 3>&1 2>&3 1>/dev/null)
+
+    if [[ $IOTLAB_ID_TMP =~ ^[0-9]+$ ]]; then
+        IOTLAB_ID=$IOTLAB_ID_TMP
+    else
+        # not found, launch experiment
+        IOTLAB_ID_TMP=$(make iotlab-submit 3>&1 2>&3 1)
+        [[ $IOTLAB_ID =~ ^[0-9]+$ ]] || echo "Could not launch experiment" >&; exit 1
+        IOTLAB_ID=$IOTLAB_ID_TMP
+    fi
+}
+
 
 # RUN experiments
 test_header_table_size
