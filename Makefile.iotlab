@@ -69,9 +69,9 @@ iotlab-submit: iotlab-experiment $(IOTLAB_CONFIG)
 						-n $(IOTLAB_NAME) \
 						-d $(IOTLAB_DURATION) \
 						-l $(IOTLAB_NODES_LIST) | \
-						 jq .id))
+						grep -m 1 '"id"' | grep -Eo '[[:digit:]]+'))
 	$(if $(shell iotlab-experiment wait -i $(IOTLAB_ID) --timeout $(IOTLAB_WAIT)),, \
-		$(error Failed to launch experiment $(shell iotlab-experiment stop -i $(IOTLAB_ID) | jq -r .id)))
+		$(error Failed to launch experiment $(shell iotlab-experiment stop -i $(IOTLAB_ID) | grep -m 1 '"id"' | grep -Eo '[[:digit:]]+')))
 
 iotlab-stop: iotlab-experiment iotlab-running
 	$(Q)iotlab-experiment stop -i $(IOTLAB_ID)
