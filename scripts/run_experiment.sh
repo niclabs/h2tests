@@ -170,8 +170,8 @@ run_experiment() {
     exec 4<&-
 
     # get start time and end time from h2load
-    start_time=$(awk '/^start-time:/{print $2}' $H2LOAD_OUT)
-    end_time=$(awk '/^end-time:/{print $2}' $H2LOAD_OUT)
+    start_time=$(awk '/^start-time:/{gsub(/[ \n\t\r]+$/, "", $2); printf $2}' $H2LOAD_OUT)
+    end_time=$(awk '/^end-time:/{gsub(/[ \n\t\r]+$/, "", $2); printf $2}' $H2LOAD_OUT)
 
     # write experiment data
     # start-time end-time
