@@ -41,8 +41,7 @@ IOTLAB_BUILD_NODE ?= $(firstword $(IOTLAB_NODE_ID_LIST))
 HOSTNAME = $(shell hostname)
 
 PREFIX = $(if $(PREFIX_DISABLE),,1> >(sed "s/^/$(1)> /") 2> >(sed "s/^/$(1)> /" >&2))
-LOCAL = $(call PREFIX,$(HOSTNAME))
-SITE = $(call PREFIX,$(IOTLAB_SITE))
+LOCAL = $(call PREFIX,$(HOSTNAME)) >&2
 NODE = $(call PREFIX,node-a8-$(1))
 
 # Where is the build running
@@ -96,7 +95,7 @@ iotlab-node-all-%: iotlab-running iotlab-site-sync
 	$(eval ENV := $(subst R_,,$(foreach v, $(filter R_%,$(.VARIABLES)),$(v)=$($(v)))) QUIET=$(QUIET))
 	$(eval T := $(subst iotlab-node-all-,,$@))
 ifeq ($(BUILD_ENV),iotlab-site)
-	@echo "Calling 'make $(T)' on IoT-Lab nodes $(IOTLAB_NODE_ID_LIST)" $(SITE)
+	@echo "Calling 'make $(T)' on IoT-Lab nodes $(IOTLAB_NODE_ID_LIST)" $(LOCAL)
 	$(Q) $(foreach id,$(IOTLAB_NODE_ID_LIST), \
 			$(call IOTLAB_A8_SSH,$(id),$(IOTLAB_BUILD_DIR),$(ENV) make $(T)) $(call NODE,$(id)); \
 		  )
@@ -120,7 +119,7 @@ iotlab-node-%: iotlab-running iotlab-site-sync
 		$(eval T := $(subst iotlab-node-$(ID)-,,$@)),\
 		$(eval ID := $(IOTLAB_BUILD_NODE)))
 ifeq ($(BUILD_ENV),iotlab-site)
-	@echo "Calling 'make $(T)' on IoT-Lab node $(ID)" $(SITE)
+	@echo "Calling 'make $(T)' on IoT-Lab node $(ID)" $(LOCAL)
 	$(Q)$(call IOTLAB_A8_SSH,$(ID),$(IOTLAB_BUILD_DIR),$(ENV) make $(T)) $(call NODE,$(ID))
 else
 ifeq ($(BUILD_ENV),local)
@@ -139,7 +138,7 @@ iotlab-site-%: iotlab-site-sync
 	$(eval T := $(subst iotlab-site-,,$@))
 ifneq ($(BUILD_ENV),iotlab-site)
 	@echo "Calling 'make $(T)' on IoT-Lab site" $(LOCAL)
-	$(Q)$(call IOTLAB_SITE_SSH,$(IOTLAB_BUILD_DIR),$(ENV) make $(T)) $(SITE)
+	$(Q)$(call IOTLAB_SITE_SSH,$(IOTLAB_BUILD_DIR),$(ENV) make $(T)) $(LOCAL)
 else
 	$(Q)$(MAKE) $(T)
 endif
