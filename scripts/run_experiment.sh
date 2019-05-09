@@ -34,7 +34,7 @@ H2LOAD_REQUESTS=131072
 while true; do
   case "$1" in
     -a | --address)  IPV6_ADDR=$2; shift; shift ;;
-    -p | --port)     PORT=$2; shift; shift ;;
+    -p | --port)     HTTP_PORT=$2; shift; shift ;;
     -n | --name)     NAME=$2; shift; shift ;;
     -s | --server)   IOTLAB_SERVER=$2; shift; shift ;;
     -c | --client)   IOTLAB_CLIENT=$2; shift; shift ;;
