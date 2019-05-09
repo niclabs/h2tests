@@ -37,7 +37,7 @@ if [ -n "$IOTLAB_SERVER" ] && [ -n "$IOTLAB_CLIENT" ]; then
     # Parameters for make
     MAKE_PREFIX_SERVER="iotlab-node-$IOTLAB_SERVER-"
     MAKE_PREFIX_CLIENT="iotlab-node-$IOTLAB_CLIENT-"
-    MAKE_ENV="QUIET=0 R_PREFIX_DISABLE=1"
+    MAKE_ENV="PREFIX_DISABLE=1"
 
     HTTP_PORT="80"
     IPV6_ADDR="::1"
