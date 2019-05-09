@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SCRIPT=$0
-OPTS=`getopt -o s:c:a:p:h --long port:address:client:,server:,help -n 'parse-options' -- "$@"`
+OPTS=`getopt -o s:c:a:p:n:h --long name:port:address:client:,server:,help -n 'parse-options' -- "$@"`
 
 if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
 
@@ -14,21 +14,24 @@ usage() {
     fi
 
     echo "Options:"
-    echo "-a <ip>,--address=<ip> IP address of the server node"
-    echo "-p <n>,--port=<n> PORT where http server will run"
-    echo "-s <n>, --server=<n> IoT-Lab server node for running experiments"
-    echo "-c <n>, --client=<n> IoT-Lab client node for running experiments"
+    echo "-a <ip>, --address=<ip> IP address of the server node"
+    echo "-p <num>, --port=<num> PORT where http server will run"
+    echo "-n <str>, --name=<num> experiment name to prefix output files"
+    echo "-s <num>, --server=<num> IoT-Lab server node for running experiments"
+    echo "-c <num>, --client=<num> IoT-Lab client node for running experiments"
     echo "-h, --help Print this message"
 }
 
 
 IPV6_ADDR=${IPV6_ADDR:-"2001:dead:beef::1"}
 HTTP_PORT=${HTTP_PORT:-80}
+NAME=$$
 
 while true; do
   case "$1" in
     -a | --address)  IPV6_ADDR=$2; shift; shift ;;
     -p | --port)     PORT=$2; shift; shift ;;
+    -n | --name)     NAME=$2; shift; shift ;;
     -s | --server)   IOTLAB_SERVER=$2; shift; shift ;;
     -c | --client)   IOTLAB_CLIENT=$2; shift; shift ;;
     -h | --help )           usage; exit 0 ;;
@@ -58,6 +61,15 @@ BIN=${BIN:-"./bin"}
 WWW=${WWW:-"./build/www"}
 RESULTS=${RESULTS:-"./results"}
 SCRIPTS=${SCRIPTS:-"./scripts"}
+
+# Result directories
+EXPERIMENTS=$RESULTS/$NAME/experiments
+AGGREGATE=$RESULTS/$NAME/aggregate
+
+# Create directories
+mkdir -p $WWW
+mkdir -p $EXPERIMENTS
+mkdir -p $AGGREGATE
 
 # Default index.html size is 512 bytes
 INDEX_HTML_SIZE=${INDEX_HTML_SIZE:-512}
@@ -127,8 +139,8 @@ run_experiment() {
         SUFFIX="$1-$2-$3-$4"
     fi
 
-    NGHTTPD_OUT=$RESULTS/exp/nghttp-$SUFFIX.txt
-    H2LOAD_OUT=$RESULTS/exp/h2load-$SUFFIX.txt
+    NGHTTPD_OUT=$EXPERIMENTS/nghttp-$SUFFIX.txt
+    H2LOAD_OUT=$EXPERIMENTS/h2load-$SUFFIX.txt
 
     # create file descriptor for writing
     # warning: this fails in OS X
@@ -199,7 +211,7 @@ test_header_table_size() {
     MAX_FRAME_SIZE=$MAX_FRAME_SIZE_DEFAULT
     MAX_HEADER_TABLE_LIST_SIZE=$MAX_HEADER_TABLE_LIST_SIZE_DEFAULT
 
-    OUT=$RESULTS/aggregate/header_table_size.txt
+    OUT=$AGGREGATE/header_table_size.txt
 
     headers > $OUT
     for header_table_size in $HEADER_TABLE_SIZE_RANGE
@@ -213,7 +225,7 @@ test_window_bits() {
     MAX_FRAME_SIZE=$MAX_FRAME_SIZE_DEFAULT
     MAX_HEADER_TABLE_LIST_SIZE=$MAX_HEADER_TABLE_LIST_SIZE_DEFAULT
 
-    OUT=$RESULTS/aggregate/window_bits.txt
+    OUT=$AGGREGATE/window_bits.txt
 
     headers > $OUT
     for window_bits in $WINDOW_BITS_RANGE
@@ -227,7 +239,7 @@ test_max_frame_size() {
     HEADER_TABLE_SIZE=$HEADER_TABLE_SIZE_DEFAULT
     MAX_HEADER_TABLE_LIST_SIZE=$MAX_HEADER_TABLE_LIST_SIZE_DEFAULT
 
-    OUT=$RESULTS/aggregate/max_frame_size.txt
+    OUT=$AGGREGATE/max_frame_size.txt
 
     headers > $OUT
     for max_frame_size in $MAX_FRAME_SIZE_RANGE
@@ -247,7 +259,7 @@ test_max_header_list_size() {
     HEADER_TABLE_SIZE=$HEADER_TABLE_SIZE_DEFAULT
     MAX_FRAME_SIZE=$MAX_FRAME_SIZE_DEFAULT
 
-    OUT=$RESULTS/aggregate/max_header_table_list_size.txt
+    OUT=$AGGREGATE/max_header_table_list_size.txt
 
     headers > $OUT
     for max_header_list_size in $MAX_HEADER_LIST_SIZE_RANGE
@@ -256,10 +268,6 @@ test_max_header_list_size() {
     done
 }
 
-# Create directories
-mkdir -p $RESULTS/exp
-mkdir -p $RESULTS/aggregate
-mkdir -p $WWW
 
 # RUN experiments
 test_header_table_size
