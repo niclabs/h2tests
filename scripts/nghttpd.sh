@@ -81,7 +81,7 @@ summary() {
 }
 
 monitor() {
-    exec top -b -d 0.01 > >(grep  "nghttpd$" | awk '{printf "%-2s %-6s %-6s\n", system("echo -n `date +%s.%N`"), $9, $10}')
+    exec top -b -d 0.01 > >(grep  "nghttpd$" | awk '$8 ~ /^R$/ {printf "%-2s %-6s %-6s\n", system("echo -n `date +%s.%N`"), $9, $10}')
 }
 
 cleanup() {
