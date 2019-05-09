@@ -54,12 +54,12 @@ $(IOTLAB_CONFIG):
 
 iotlab-running: iotlab-experiment $(IOTLAB_CONFIG)
 	$(if $(IOTLAB_ID), \
-		$(info Found experiment running with id $(IOTLAB_ID)), \
+		$(shell echo Found experiment running with id $(IOTLAB_ID) >&2), \
 		$(error No experiment running))
 
 iotlab-submit: iotlab-experiment $(IOTLAB_CONFIG)
 	$(if $(IOTLAB_ID),$(error Found experiment running with id $(IOTLAB_ID)))
-	$(info No experiment found, submitting)
+	@echo "No experiment found, submitting" >&2
 	$(if $(Q),,$(info "iotlab-experiment submit \
 						-n $(IOTLAB_NAME) \
 						-d $(IOTLAB_DURATION) \
