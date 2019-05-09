@@ -144,6 +144,7 @@ run_experiment() {
     # create file descriptor for writing
     # warning: this fails in OS X
     exec 3<> <(cat)
+    CAT_PID=$!
 
     # Run nghttpd
     echo "Running nghttpd" >&2
@@ -167,7 +168,9 @@ run_experiment() {
 
     # close file descriptors
     exec 3<&-
+    exec 3>&-
     exec 4<&-
+    kill -- $CAT_PID
 
     # get start time and end time from h2load
     start_time=$(awk '/^start-time:/{gsub(/[ \n\t\r]+$/, "", $2); printf $2}' $H2LOAD_OUT)
