@@ -118,11 +118,10 @@ NGHTTPD_PID=$!
 
 # Wait for 'q' character
 while
-    echo -n "Server running with PID $NGHTTPD_PID. Input q to exit: " >&2
     read -n 1 -u 3 key || break
     [ "$key" != "q" ]
 do
-    echo "" >&2
+    :
 done
 
 # Terminate execution
