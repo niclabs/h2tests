@@ -317,6 +317,13 @@ launch_experiment() {
     fi
 }
 
+prepare_server() {
+    if [ -n $IOTLAB_SERVER ]; then
+        exec env "R_IPV6_ADDR=$IPV6_ADDR" make iotlab-node-$IOTLAB_SERVER-slip-router
+        SERVER_PID = $!
+    fi
+}
+
 
 # RUN experiments
 test_header_table_size
