@@ -77,25 +77,38 @@ summary() {
     echo "max-header-list-size: $MAX_HEADER_LIST_SIZE"
     echo ""
     printf "%-22s %-6s %-6s\n" "timestamp" "cpu" "mem"
-    cat /tmp/$PID-nghttpd.log
+    cat <&4
 }
 
-sigterm() {
+monitor() {
+    exec top -b -d 0.01 > >(grep  "nghttpd$" | awk '{printf "%-2s %-6s %-6s\n", system("echo -n `date +%s.%N`"), $9, $10}')
+}
+
+cleanup() {
+    # kill running processes
     kill -- $TOP_PID
-    kill -- $WAIT_PID
+    kill -- $NGHTTPD_PID
+
+    # Show summary
     summary
+
+    # close file descriptor
+    exec 4<&-
+
+    exit 0
 }
 
 # Catch term and interrupt signal
-trap sigterm SIGTERM
-trap summary SIGINT
+trap cleanup SIGTERM SIGINT
 
 # Execute server and store data
 START_TIME=$(date +%s.%N)
-top -b -d 0.01 > >(grep  "nghttpd$" | awk '{printf "%-2s %-6s %-6s\n", system("echo -n `date +%s.%N`"), $9, $10}' > /tmp/$PID-nghttpd.log) &
 
+# Start monitoring process
+exec 4< <(monitor)
 TOP_PID=$!
-nghttpd $* &
-WAIT_PID=$!
 
+# Run nghttpd
+nghttpd $* 1>&2 &
+NGHTTPD_PID=$!
 wait
