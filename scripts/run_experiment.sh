@@ -58,8 +58,8 @@ IPV6_ADDR=${IPV6_ADDR:-"::1"}
 # Number of clients for h2load
 H2LOAD_CLIENTS=96
 H2LOAD_REQUESTS=131072
-#H2LOAD_CLIENTS=1
-#H2LOAD_REQUESTS=1
+#H2LOAD_CLIENTS=100
+#H2LOAD_REQUESTS=100
 
 # Fixed HTTP2 parameters
 MAX_CONCURRENT_STREAMS=1
@@ -123,12 +123,18 @@ run_experiment() {
     NGHTTPD_OUT=$RESULTS/exp/nghttp-$SUFFIX.txt
     H2LOAD_OUT=$RESULTS/exp/h2load-$SUFFIX.txt
 
+    # create file descriptor for writing
+    # warning: this fails in OS X
+    exec 3<> <(cat)
+
     # Run nghttpd
-    nghttpd $1 $2 $3 $4 > $NGHTTPD_OUT &
+    echo "Running nghttpd" >&2
+    exec 4< <(nghttpd $1 $2 $3 $4 <&3)
     NGHTTPD_PID=$!
 
-    # Give time to the server to run
+    # Give time to the server to start
     sleep 2
+    echo "nghttpd started ($NGHTTPD_PID)" >&2
 
     # Run h2load
     echo "Running h2load" >&2
@@ -137,8 +143,13 @@ run_experiment() {
 
     echo "h2load finished, terminating server and calculating results" >&2
 
-    # Kill server
-    kill $NGHTTPD_PID
+    # Kill server and children
+    echo 'q' >&3
+    cat <&4 > $NGHTTPD_OUT
+
+    # close file descriptors
+    exec 3<&-
+    exec 4<&-
 
     # get start time and end time from h2load
     start_time=$(awk '/^start-time:/{print $2}' $H2LOAD_OUT)
@@ -244,9 +255,7 @@ mkdir -p $RESULTS/aggregate
 mkdir -p $WWW
 
 # RUN experiments
-#test_header_table_size
-#test_window_bits
-#test_max_frame_size
-#test_max_header_list_size
-
-run_experiment 4096 16 16384 ""  $RESULTS/exp/tests-experiment.txt
+test_header_table_size
+test_window_bits
+test_max_frame_size
+test_max_header_list_size
