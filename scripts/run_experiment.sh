@@ -87,13 +87,13 @@ MAX_CONCURRENT_STREAMS=1
 HEADER_TABLE_SIZE_DEFAULT=4096
 WINDOW_BITS_DEFAULT=16
 MAX_FRAME_SIZE_DEFAULT=16384
-MAX_HEADER_TABLE_LIST_SIZE_DEFAULT=
+MAX_HEADER_LIST_SIZE_DEFAULT=
 
 # Variable HTTP2 parameters
 HEADER_TABLE_SIZE_RANGE=$(seq 1 4096)
 WINDOW_BITS_RANGE=$(seq 0 30)
 MAX_FRAME_SIZE_RANGE=$(seq 14 24) # 2**n
-MAX_HEADER_TABLE_LIST_SIZE_RANGE=$(seq 1 4096)
+MAX_HEADER_LIST_SIZE_RANGE=$(seq 1 4096)
 
 setup() {
     # Create random index file to prevent caching
@@ -208,7 +208,7 @@ headers() {
 test_header_table_size() {
     WINDOW_BITS=$WINDOW_BITS_DEFAULT
     MAX_FRAME_SIZE=$MAX_FRAME_SIZE_DEFAULT
-    MAX_HEADER_TABLE_LIST_SIZE=$MAX_HEADER_TABLE_LIST_SIZE_DEFAULT
+    MAX_HEADER_LIST_SIZE=$MAX_HEADER_LIST_SIZE_DEFAULT
 
     OUT=$AGGREGATE/header_table_size.txt
     if [[ -f $OUT ]] &&
@@ -223,14 +223,14 @@ test_header_table_size() {
     for header_table_size in $HEADER_TABLE_SIZE_RANGE
     do
         [ $header_table_size -lt $header_table_size_start ] && continue
-        run_experiment $header_table_size $WINDOW_BITS $MAX_FRAME_SIZE "$MAX_HEADER_TABLE_LIST_SIZE" $OUT
+        run_experiment $header_table_size $WINDOW_BITS $MAX_FRAME_SIZE "$MAX_HEADER_LIST_SIZE" $OUT
     done
 }
 
 test_window_bits() {
     HEADER_TABLE_SIZE=$HEADER_TABLE_SIZE_DEFAULT
     MAX_FRAME_SIZE=$MAX_FRAME_SIZE_DEFAULT
-    MAX_HEADER_TABLE_LIST_SIZE=$MAX_HEADER_TABLE_LIST_SIZE_DEFAULT
+    MAX_HEADER_LIST_SIZE=$MAX_HEADER_LIST_SIZE_DEFAULT
 
     OUT=$AGGREGATE/window_bits.txt
     if [ -f $OUT ] &&
@@ -245,14 +245,14 @@ test_window_bits() {
     for window_bits in $WINDOW_BITS_RANGE
     do
         [ $window_bits -lt $window_bits_start ] && continue
-        run_experiment $HEADER_TABLE_SIZE $window_bits $MAX_FRAME_SIZE "$MAX_HEADER_TABLE_LIST_SIZE" $OUT
+        run_experiment $HEADER_TABLE_SIZE $window_bits $MAX_FRAME_SIZE "$MAX_HEADER_LIST_SIZE" $OUT
     done
 }
 
 test_max_frame_size() {
     WINDOW_BITS=$WINDOW_BITS_DEFAULT
     HEADER_TABLE_SIZE=$HEADER_TABLE_SIZE_DEFAULT
-    MAX_HEADER_TABLE_LIST_SIZE=$MAX_HEADER_TABLE_LIST_SIZE_DEFAULT
+    MAX_HEADER_LIST_SIZE=$MAX_HEADER_LIST_SIZE_DEFAULT
 
     OUT=$AGGREGATE/max_frame_size.txt
     if [ -f $OUT ] &&
@@ -273,7 +273,7 @@ test_max_frame_size() {
             max_frame_size=$[2**$max_frame_size]
         fi
 
-        run_experiment $HEADER_TABLE_SIZE $WINDOW_BITS $max_frame_size "$MAX_HEADER_TABLE_LIST_SIZE" $OUT
+        run_experiment $HEADER_TABLE_SIZE $WINDOW_BITS $max_frame_size "$MAX_HEADER_LIST_SIZE" $OUT
     done
 }
 
@@ -282,7 +282,7 @@ test_max_header_list_size() {
     HEADER_TABLE_SIZE=$HEADER_TABLE_SIZE_DEFAULT
     MAX_FRAME_SIZE=$MAX_FRAME_SIZE_DEFAULT
 
-    OUT=$AGGREGATE/max_header_table_list_size.txt
+    OUT=$AGGREGATE/max_header_list_size.txt
     if [ -f $OUT ] &&
         max_header_list_size_tmp=$(tail -n 1 $OUT | awk '{printf $6}') &&
         [[ -n "$max_header_list_size_tmp" ]] && [[ $max_header_list_size_tmp =~ '^[0-9]+$' ]]; then
