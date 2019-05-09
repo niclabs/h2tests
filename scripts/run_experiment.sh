@@ -29,18 +29,20 @@ while true; do
   esac
 done
 
-if [ -n "$IOTLAB_SERVER" ] && [ -n "$IOTLAB_CLIENT" ]; then
-    [[ $IOTLAB_SERVER -gt 0 ]] && [[ $IOTLAB_CLIENT -gt 0 ]] || { usage "Both, server and client must be greater than 0"; exit 1; }
-
-    IOTLAB=1
+if [ -n "$IOTLAB_SERVER" ]; then
+    [[ $IOTLAB_SERVER -gt 0 ]] || { usage "IoT-Lab server node number must be greater than 0"; exit 1; }
 
     # Parameters for make
     MAKE_PREFIX_SERVER="iotlab-node-$IOTLAB_SERVER-"
+    MAKE_ENV="PREFIX_DISABLE=1"
+fi
+
+if [ -n "$IOTLAB_CLIENT" ]; then
+    [[ $IOTLAB_CLIENT -gt 0 ]] || { usage "IoT-Lab client node number must be greater than 0"; exit 1; }
+
+    # Parameters for make
     MAKE_PREFIX_CLIENT="iotlab-node-$IOTLAB_CLIENT-"
     MAKE_ENV="PREFIX_DISABLE=1"
-
-    HTTP_PORT="80"
-    IPV6_ADDR="::1"
 fi
 
 # Default directories
