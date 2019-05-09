@@ -169,11 +169,11 @@ build-slip-bridge: $(BIN)/slip-bridge.$(TARGET)
 
 .PHONY: slip-router
 slip-router: $(BIN)/slip-bridge.native
-	$(Q) $< -v2 -L -s $(TTY) -r $(IPV6_PREFIX) -B 500000
+	$(Q) $< $(if $(VERBOSE),-v2 -L) -s $(TTY) -r $(IPV6_PREFIX) -B 500000
 
 .PHONY: slip-bridge
 slip-bridge: $(BIN)/slip-bridge.native
-	$(Q) $< -v2 -L -s $(TTY) -B 500000
+	$(Q) $< $(if $(VERBOSE),-v2 -L) -s $(TTY) -B 500000
 
 .PHONY: help
 help:
