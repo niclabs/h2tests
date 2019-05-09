@@ -257,7 +257,7 @@ test_max_frame_size() {
     OUT=$AGGREGATE/max_frame_size.txt
     if [ -f $OUT ] &&
         max_frame_size_start_tmp=$(tail -n 1 $OUT | awk '{printf $5}') &&
-        [[ -n "$max_frame_size_start_tmp" ]] && [[ $max_frame_size_start_tmp =~ '^[0-9]+$' ]]; then
+        [[ -n "$max_frame_size_start_tmp" ]] && [[ $max_frame_size_start_tmp =~ ^[0-9]+$ ]]; then
         max_frame_size_start=$max_frame_size_start_tmp
     else
         max_frame_size_start=$(echo $MAX_FRAME_SIZE_RANGE | cut -d " " -f 1)
@@ -285,7 +285,7 @@ test_max_header_list_size() {
     OUT=$AGGREGATE/max_header_list_size.txt
     if [ -f $OUT ] &&
         max_header_list_size_tmp=$(tail -n 1 $OUT | awk '{printf $6}') &&
-        [[ -n "$max_header_list_size_tmp" ]] && [[ $max_header_list_size_tmp =~ '^[0-9]+$' ]]; then
+        [[ -n "$max_header_list_size_tmp" ]] && [[ $max_header_list_size_tmp =~ ^[0-9]+$ ]]; then
         max_header_list_size_start=$max_header_list_size_tmp
         :
     else
