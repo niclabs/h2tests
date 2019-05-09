@@ -92,11 +92,15 @@ cleanup() {
     # Show summary
     summary
 
-    # close file descriptor
+    # close file descriptors
+    exec 3<&-
     exec 4<&-
 
     exit 0
 }
+
+# Open file descriptor 3 from stdin
+exec 3<&0
 
 # Catch term and interrupt signal
 trap cleanup SIGTERM SIGINT
@@ -111,4 +115,15 @@ TOP_PID=$!
 # Run nghttpd
 nghttpd $* 1>&2 &
 NGHTTPD_PID=$!
-wait
+
+# Wait for 'q' character
+while
+    echo -n "Server running with PID $NGHTTPD_PID. Input q to exit: " >&2
+    read -n 1 -u 3 key || break
+    [ "$key" != "q" ]
+do
+    echo "" >&2
+done
+
+# Terminate execution
+cleanup
