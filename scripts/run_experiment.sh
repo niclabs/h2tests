@@ -1,7 +1,7 @@
 #!/bin/bash
 
 SCRIPT=$0
-OPTS=`getopt -o s:c:h --long iotlab-client:,iotlab-server:,help -n 'parse-options' -- "$@"`
+OPTS=`getopt -o s:c:a:p:h --long port:address:client:,server:,help -n 'parse-options' -- "$@"`
 
 if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
 
@@ -14,15 +14,23 @@ usage() {
     fi
 
     echo "Options:"
-    echo "-s <n>  --iotlab-server=<n> IoT-Lab server node for running experiments"
-    echo "-c <n>, --iotlab-client=<n> IoT-Lab client node for running experiments"
+    echo "-a <ip>,--address=<ip> IP address of the server node"
+    echo "-p <n>,--port=<n> PORT where http server will run"
+    echo "-s <n>, --server=<n> IoT-Lab server node for running experiments"
+    echo "-c <n>, --client=<n> IoT-Lab client node for running experiments"
     echo "-h, --help Print this message"
 }
 
+
+IPV6_ADDR=${IPV6_ADDR:-"2001:dead:beef::1"}
+HTTP_PORT=${HTTP_PORT:-80}
+
 while true; do
   case "$1" in
-    -s | --iotlab-server)   IOTLAB_SERVER=$2; shift; shift ;;
-    -c | --iotlab-client)   IOTLAB_CLIENT=$2; shift; shift ;;
+    -a | --address)  IPV6_ADDR=$2; shift; shift ;;
+    -p | --port)     PORT=$2; shift; shift ;;
+    -s | --server)   IOTLAB_SERVER=$2; shift; shift ;;
+    -c | --client)   IOTLAB_CLIENT=$2; shift; shift ;;
     -h | --help )           usage; exit 0 ;;
     -- ) shift; break ;;
     * ) break ;;
@@ -53,9 +61,6 @@ SCRIPTS=${SCRIPTS:-"./scripts"}
 
 # Default index.html size is 512 bytes
 INDEX_HTML_SIZE=${INDEX_HTML_SIZE:-512}
-
-HTTP_PORT=${HTTP_PORT:-8888}
-IPV6_ADDR=${IPV6_ADDR:-"::1"}
 
 # Number of clients for h2load
 H2LOAD_CLIENTS=96
