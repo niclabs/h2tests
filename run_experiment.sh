@@ -217,7 +217,7 @@ test_header_table_size() {
     if [[ -f $OUT ]] &&
         header_table_size_tmp=$(tail -n 1 $OUT | awk '{printf $3}') &&
         [[ -n "$header_table_size_tmp" ]]  && [[ $header_table_size_tmp =~ ^[0-9]+$ ]]; then
-        header_table_size_start=$header_table_size_tmp
+        header_table_size_start=$[header_table_size_tmp + 1]
     else
         header_table_size_start=$(echo $HEADER_TABLE_SIZE_RANGE | cut -d " " -f 1)
         headers > $OUT
@@ -239,7 +239,7 @@ test_window_bits() {
     if [ -f $OUT ] &&
         window_bits_start_tmp=$(tail -n 1 $OUT | awk '{printf $4}') &&
         [[ -n "$window_bits_start_tmp" ]] && [[ $window_bits_start_tmp =~ ^[0-9]+$ ]]; then
-        window_bits_start=$window_bits_start_tmp
+        window_bits_start=$[window_bits_start_tmp + 1]
     else
         window_bits_start=$(echo $WINDOW_BITS_RANGE | cut -d " " -f 1)
         headers > $OUT
@@ -261,7 +261,7 @@ test_max_frame_size() {
     if [ -f $OUT ] &&
         max_frame_size_start_tmp=$(tail -n 1 $OUT | awk '{printf $5}') &&
         [[ -n "$max_frame_size_start_tmp" ]] && [[ $max_frame_size_start_tmp =~ ^[0-9]+$ ]]; then
-        max_frame_size_start=$max_frame_size_start_tmp
+        max_frame_size_start=$[max_frame_size_start_tmp + 1]
     else
         max_frame_size_start=$(echo $MAX_FRAME_SIZE_RANGE | cut -d " " -f 1)
         headers > $OUT
@@ -289,8 +289,7 @@ test_max_header_list_size() {
     if [ -f $OUT ] &&
         max_header_list_size_tmp=$(tail -n 1 $OUT | awk '{printf $6}') &&
         [[ -n "$max_header_list_size_tmp" ]] && [[ $max_header_list_size_tmp =~ ^[0-9]+$ ]]; then
-        max_header_list_size_start=$max_header_list_size_tmp
-        :
+        max_header_list_size_start=$[max_header_list_size_tmp + 1]
     else
         max_header_list_size_start=$(echo $MAX_HEADER_LIST_SIZE_RANGE | cut -d " " -f 1)
         headers > $OUT
