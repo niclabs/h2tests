@@ -333,15 +333,15 @@ close_all_fds() {
 }
 
 redirect_left() {
-    fd=$(request_fd)
-    exec $fd< <(eval $(printf "%q " "$@")) #explanation https://stackoverflow.com/a/3179059
+    exec {fd}< <(eval $(printf "%q " "$@")) #explanation https://stackoverflow.com/a/3179059
+    fds+=($fd)
     pids[$fd]=$!
     return $fd
 }
 
 redirect_right() {
-    fd=$(request_fd)
-    exec $fd> >(eval $(printf "%q " "$@")) #explanation https://stackoverflow.com/a/3179059
+    exec {fd}> >(eval $(printf "%q " "$@")) #explanation https://stackoverflow.com/a/3179059
+    fds+=($fd)
     pids[$fd]=$!
     return $fd
 }
