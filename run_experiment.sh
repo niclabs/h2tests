@@ -316,6 +316,11 @@ request_fd() {
 }
 
 close_fd() {
+    # if there is a related process, kill the process if running
+    if [ -n "${pids[$1]}" ]; then
+        kill -- ${pids[$1]}
+        pids=${pids[@]#$1} #remove from array
+    fi
     exec $1<&-
     exec $1>&-
     fds=${fds[@]#$1} #remove from array
@@ -326,6 +331,20 @@ close_all_fds() {
         exec $i<&-
         close_fd $i
     done
+}
+
+redirect_left() {
+    fd=$(request_fd)
+    exec $fd< <(eval $(printf "%q " "$@")) #explanation https://stackoverflow.com/a/3179059
+    pids[$fd]=$!
+    return $fd
+}
+
+redirect_right() {
+    fd=$(request_fd)
+    exec $fd> >(eval $(printf "%q " "$@")) #explanation https://stackoverflow.com/a/3179059
+    pids[$fd]=$!
+    return $fd
 }
 
 submit_experiment_if_needed() {
