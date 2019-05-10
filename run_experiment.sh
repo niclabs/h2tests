@@ -156,6 +156,19 @@ experiment_server_cleanup() {
     close_fd $server_out
 }
 
+experiment_client_setup() {
+    echo "Running h2load" >&2
+    redirect_left h2load $1 $2 $3 $4
+    client_out=$?
+}
+
+experiment_client_cleanup() {
+    # wait for h2load to finish
+    cat <&$client_out > $1
+
+    # close the file descriptor
+    close_fd $client_out
+}
 
 run_experiment() {
     echo "Starting experiment with header_table_size=$1 window_bits=$2 max_frame_size=$3 max_header_list_size=$4" >&2
@@ -172,12 +185,9 @@ run_experiment() {
     # start server
     experiment_server_setup $1 $2 $3 $4
 
-    # Run h2load
-    echo "Running h2load" >&2
-    h2load $1 $2 $3 $4 > $H2LOAD_OUT &
-    wait $!
-
-    echo "h2load finished, terminating server and calculating results" >&2
+    # start client
+    experiment_client_setup $1 $2 $3 $4
+    experiment_client_cleanup $H2LOAD_OUT
 
     # Kill server and children
     experiment_server_cleanup $NGHTTPD_OUT
