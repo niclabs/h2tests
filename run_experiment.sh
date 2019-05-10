@@ -318,13 +318,13 @@ request_fd() {
 close_fd() {
     exec $1<&-
     exec $1>&-
-    fds=${fds[@]#$1}
+    fds=${fds[@]#$1} #remove from array
 }
 
 close_all_fds() {
     for i in $fds; do
         exec $i<&-
-        exec $i>&-
+        close_fd $i
     done
 }
 
