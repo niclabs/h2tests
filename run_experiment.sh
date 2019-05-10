@@ -95,12 +95,12 @@ WINDOW_BITS_RANGE=$(seq 0 30)
 MAX_FRAME_SIZE_RANGE=$(seq 14 24) # 2**n
 MAX_HEADER_LIST_SIZE_RANGE=$(seq 1 4096)
 
-setup() {
+setup_experiment() {
     # Create random index file to prevent caching
     head -c $INDEX_HTML_SIZE < /dev/urandom > $WWW/index.html
 }
 
-cleanup() {
+cleanup_experiment() {
     # Remove index file
     rm build/www/index.html
 }
@@ -131,7 +131,7 @@ h2load() {
 
 run_experiment() {
     echo "Starting experiment with header_table_size=$1 window_bits=$2 max_frame_size=$3 max_header_list_size=$4" >&2
-    setup
+    setup_experiment
 
     SUFFIX="$1-$2-$3-d"
     if [ -n "$4" ]; then
@@ -197,7 +197,7 @@ run_experiment() {
     # TODO: get consumption data if running on iotlab-node
 
     echo "Finishing experiment with header_table_size=$1 window_bits=$2 max_frame_size=$3 max_header_list_size=$4" >&2
-    cleanup
+    cleanup_experiment
 }
 
 headers() {
@@ -416,4 +416,8 @@ prepare_server $IOTLAB_SERVER
 
 prepare_client $IOTLAB_CLIENT
 
+# RUN experiments
+test_header_table_size
+test_window_bits
+test_max_frame_size
 test_max_header_list_size
