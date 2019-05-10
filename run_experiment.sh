@@ -351,12 +351,30 @@ submit_experiment_if_needed() {
 }
 
 prepare_server() {
-    if [ -n $IOTLAB_SERVER ]; then
-        exec env "R_IPV6_ADDR=$IPV6_ADDR" make iotlab-node-$IOTLAB_SERVER-slip-router
-        SERVER_PID = $!
-    fi
+    [ -n "$1" ] || return
+
+    # Flash server radio and launch slip-router
+    echo "Flashing radio on node $1" >&2
+    eval "$MAKE_ENV make iotlab-node-$1-flash-slip-radio" || (echo "Failed to flash radio for node $1" >&2 && exit 1)
+
+    echo "Launching slip-router on node $1" >&2
+    server_fd=$(request_fd)
+    exec $server_fd> >(exec env $MAKE_ENV R_IPV6_ADDR=$IPV6_ADDR make iotlab-node-$1-slip-router)
 }
 
+
+prepare_client() {
+    [ -n "$1" ] || return
+
+    # Flash server radio and launch slip-router
+    echo "Flashing radio on node $1" >&2
+    (eval $MAKE_ENV make iotlab-node-$1-flash-slip-radio) || (echo "Failed to flash radio for node $1" >&2 && exit 1)
+
+    echo "Launching slip-bridge on node $1" >&2
+    local fd=$(request_fd)
+    $fd> >(exec env $MAKE_ENV make iotlab-node-$1-slip-bridge)
+    client_fds+=($fd)
+}
 
 finish() {
     # Perform cleanup tasks
@@ -374,7 +392,11 @@ exec 2> >(sed "s/^/$(date -u +'%F %T') /" >&2)
 # Submit experiment if not running
 submit_experiment_if_needed
 
-test_max_frame_size
+# prepare server before launching
+prepare_server $IOTLAB_SERVER
+
+prepare_client $IOTLAB_CLIENT
+
 test_max_header_list_size
 
 # cleanup
