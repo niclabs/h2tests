@@ -307,15 +307,20 @@ submit_experiment_if_needed() {
     [[ -z "$IOTLAB_SERVER" ]] && [[ -z "$IOTLAB_CLIENT" ]] && return
 
     # check if experiment is running
-    local IOTLAB_ID_TMP=$(make iotlab-id)
+    local iotlab_id_tmp=$(make iotlab-id)
 
-    if [[ $IOTLAB_ID_TMP =~ ^[0-9]+$ ]]; then
-        IOTLAB_ID=$IOTLAB_ID_TMP
+    if [[ $iotlab_id_tmp =~ ^[0-9]+$ ]]; then
+        IOTLAB_ID=$iotlab_id_tmp
     else
         # not found, launch experiment
-        IOTLAB_ID_TMP=$(make iotlab-submit)
-        [[ $IOTLAB_ID_TMP =~ ^[0-9]+$ ]] || echo "Could not launch experiment"; exit 1
-        IOTLAB_ID=$IOTLAB_ID_TMP
+        make iotlab-submit
+
+        iotlab_id_tmp=$(make iotlab-id)
+        [[ $iotlab_id_tmp =~ ^[0-9]+$ ]] || (echo "Could not launch experiment" && exit 1)
+        IOTLAB_ID=$iotlab_id_tmp
+
+        echo "Waiting 60 seconds until nodes get started"
+        sleep 60
     fi
 }
 
