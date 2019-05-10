@@ -305,7 +305,7 @@ test_max_header_list_size() {
 request_fd() {
     [ -n "${fds[*]}"] || fds=()
 
-    for i in {5..20}; do # 1 .. 4 are reserved
+    for i in {5..100}; do # 1 .. 4 are reserved
         # ugly: if removing the element does nothing then it is not used
         if [ ${fds} = ${fds[@]#$i} ]; then
             fds+=($i)
@@ -328,7 +328,6 @@ close_fd() {
 
 close_all_fds() {
     for i in $fds; do
-        exec $i<&-
         close_fd $i
     done
 }
