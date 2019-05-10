@@ -130,7 +130,7 @@ h2load() {
 }
 
 run_experiment() {
-    echo "$(date)> starting experiment with header_table_size=$1 window_bits=$2 max_frame_size=$3 max_header_list_size=$4" >&2
+    echo "Starting experiment with header_table_size=$1 window_bits=$2 max_frame_size=$3 max_header_list_size=$4" >&2
     setup
 
     SUFFIX="$1-$2-$3-d"
@@ -196,7 +196,7 @@ run_experiment() {
 
     # TODO: get consumption data if running on iotlab-node
 
-    echo "$(date) > finishing experiment with header_table_size=$1 window_bits=$2 max_frame_size=$3 max_header_list_size=$4" >&2
+    echo "Finishing experiment with header_table_size=$1 window_bits=$2 max_frame_size=$3 max_header_list_size=$4" >&2
     cleanup
 }
 
