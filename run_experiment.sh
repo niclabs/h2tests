@@ -302,7 +302,7 @@ test_max_header_list_size() {
     done
 }
 
-request_fd() {
+open_fd() {
     [ -n "${fds[*]}"] || fds=()
 
     for i in {5..100}; do # 1 .. 4 are reserved
