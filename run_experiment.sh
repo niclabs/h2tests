@@ -321,8 +321,8 @@ close_fd() {
         kill -- ${pids[$1]} > /dev/null 2>&1 # the process may not exist so we ignore output
         pids=${pids[@]#$1} #remove from array
     fi
-    exec $1<&-
-    exec $1>&-
+    eval "exec $1<&-"
+    eval "exec $1>&-"
     fds=${fds[@]#$1} #remove from array
 }
 
