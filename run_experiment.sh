@@ -302,6 +302,32 @@ test_max_header_list_size() {
     done
 }
 
+request_fd() {
+    [ -n "${fds[*]}"] || fds=()
+
+    for i in {5..20}; do # 1 .. 4 are reserved
+        # ugly: if removing the element does nothing then it is not used
+        if [ ${fds} = ${fds[@]#$i} ]; then
+            fds+=($i)
+            return $i
+        fi
+    done
+    echo "Too many file descriptors"; exit 1
+}
+
+close_fd() {
+    exec $1<&-
+    exec $1>&-
+    fds=${fds[@]#$1}
+}
+
+close_all_fds() {
+    for i in $fds; do
+        exec $i<&-
+        exec $i>&-
+    done
+}
+
 submit_experiment_if_needed() {
     # check if we are running in iot-lab
     [[ -z "$IOTLAB_SERVER" ]] && [[ -z "$IOTLAB_CLIENT" ]] && return
