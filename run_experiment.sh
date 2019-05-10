@@ -302,7 +302,7 @@ test_max_header_list_size() {
     done
 }
 
-launch_experiment() {
+submit_experiment() {
     # check if experiment is running
     local IOTLAB_ID_TMP=$(make iotlab-running 3>&1 2>&3 1>/dev/null)
 
