@@ -313,7 +313,7 @@ submit_experiment_if_needed() {
         IOTLAB_ID=$iotlab_id_tmp
     else
         # not found, launch experiment
-        make iotlab-submit
+        exec env $MAKE_ENV make iotlab-submit
 
         iotlab_id_tmp=$(make iotlab-id)
         [[ $iotlab_id_tmp =~ ^[0-9]+$ ]] || (echo "Could not launch experiment" && exit 1)
