@@ -400,11 +400,9 @@ prepare_client() {
 finish() {
     # Perform cleanup tasks
     close_all_fds
-
-    exit 0
 }
 
-trap finish SIGINT SIGTERM
+trap finish SIGINT SIGTERM EXIT
 
 # prepend date in all output
 exec > >(sed "s/^/$(date -u +'%F %T') /")
@@ -419,6 +417,3 @@ prepare_server $IOTLAB_SERVER
 prepare_client $IOTLAB_CLIENT
 
 test_max_header_list_size
-
-# cleanup
-finish
