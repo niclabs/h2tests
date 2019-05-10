@@ -302,16 +302,19 @@ test_max_header_list_size() {
     done
 }
 
-submit_experiment() {
+submit_experiment_if_needed() {
+    # check if we are running in iot-lab
+    [[ -z "$IOTLAB_SERVER" ]] && [[ -z "$IOTLAB_CLIENT" ]] && return
+
     # check if experiment is running
-    local IOTLAB_ID_TMP=$(make iotlab-running 3>&1 2>&3 1>/dev/null)
+    local IOTLAB_ID_TMP=$(make iotlab-id)
 
     if [[ $IOTLAB_ID_TMP =~ ^[0-9]+$ ]]; then
         IOTLAB_ID=$IOTLAB_ID_TMP
     else
         # not found, launch experiment
-        IOTLAB_ID_TMP=$(make iotlab-submit 3>&1 2>&3 1)
-        [[ $IOTLAB_ID =~ ^[0-9]+$ ]] || echo "Could not launch experiment" >&2; exit 1
+        IOTLAB_ID_TMP=$(make iotlab-submit)
+        [[ $IOTLAB_ID_TMP =~ ^[0-9]+$ ]] || echo "Could not launch experiment"; exit 1
         IOTLAB_ID=$IOTLAB_ID_TMP
     fi
 }
