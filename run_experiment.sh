@@ -371,9 +371,9 @@ trap finish SIGINT SIGTERM
 exec > >(sed "s/^/$(date -u +'%F %T') /")
 exec 2> >(sed "s/^/$(date -u +'%F %T') /" >&2)
 
-# RUN experiments
-test_header_table_size
-test_window_bits
+# Submit experiment if not running
+submit_experiment_if_needed
+
 test_max_frame_size
 test_max_header_list_size
 
