@@ -311,7 +311,7 @@ launch_experiment() {
     else
         # not found, launch experiment
         IOTLAB_ID_TMP=$(make iotlab-submit 3>&1 2>&3 1)
-        [[ $IOTLAB_ID =~ ^[0-9]+$ ]] || echo "Could not launch experiment" >&; exit 1
+        [[ $IOTLAB_ID =~ ^[0-9]+$ ]] || echo "Could not launch experiment" >&2; exit 1
         IOTLAB_ID=$IOTLAB_ID_TMP
     fi
 }
