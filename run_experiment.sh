@@ -69,6 +69,7 @@ RESULTS=${RESULTS:-"./results"}
 SCRIPTS=${SCRIPTS:-"./scripts"}
 
 # Result directories
+AGGREGATE=$RESULTS/$NAME
 SERVER=$RESULTS/$NAME/server
 CLIENTS=$RESULTS/$NAME/clients
 
@@ -233,7 +234,7 @@ test_header_table_size() {
     MAX_FRAME_SIZE=$MAX_FRAME_SIZE_DEFAULT
     MAX_HEADER_LIST_SIZE=$MAX_HEADER_LIST_SIZE_DEFAULT
 
-    OUT=$RESULTS/header_table_size.txt
+    OUT=$AGGREGATE/header_table_size.txt
     if [[ -f $OUT ]] &&
         header_table_size_tmp=$(tail -n 1 $OUT | awk '{printf $3}') &&
         [[ -n "$header_table_size_tmp" ]]  && [[ $header_table_size_tmp =~ ^[0-9]+$ ]]; then
@@ -255,7 +256,7 @@ test_window_bits() {
     MAX_FRAME_SIZE=$MAX_FRAME_SIZE_DEFAULT
     MAX_HEADER_LIST_SIZE=$MAX_HEADER_LIST_SIZE_DEFAULT
 
-    OUT=$RESULTS/window_bits.txt
+    OUT=$AGGREGATE/window_bits.txt
     if [ -f $OUT ] &&
         window_bits_start_tmp=$(tail -n 1 $OUT | awk '{printf $4}') &&
         [[ -n "$window_bits_start_tmp" ]] && [[ $window_bits_start_tmp =~ ^[0-9]+$ ]]; then
@@ -277,7 +278,7 @@ test_max_frame_size() {
     HEADER_TABLE_SIZE=$HEADER_TABLE_SIZE_DEFAULT
     MAX_HEADER_LIST_SIZE=$MAX_HEADER_LIST_SIZE_DEFAULT
 
-    OUT=$RESULTS/max_frame_size.txt
+    OUT=$AGGREGATE/max_frame_size.txt
     if [ -f $OUT ] &&
         max_frame_size_start_tmp=$(tail -n 1 $OUT | awk '{printf $5}') &&
         [[ -n "$max_frame_size_start_tmp" ]] && [[ $max_frame_size_start_tmp =~ ^[0-9]+$ ]]; then
@@ -305,7 +306,7 @@ test_max_header_list_size() {
     HEADER_TABLE_SIZE=$HEADER_TABLE_SIZE_DEFAULT
     MAX_FRAME_SIZE=$MAX_FRAME_SIZE_DEFAULT
 
-    OUT=$RESULTS/max_header_list_size.txt
+    OUT=$AGGREGATE/max_header_list_size.txt
     if [ -f $OUT ] &&
         max_header_list_size_tmp=$(tail -n 1 $OUT | awk '{printf $6}') &&
         [[ -n "$max_header_list_size_tmp" ]] && [[ $max_header_list_size_tmp =~ ^[0-9]+$ ]]; then
