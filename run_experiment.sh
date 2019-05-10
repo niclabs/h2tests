@@ -129,6 +129,34 @@ h2load() {
     exec env $ENV make ${MAKE_PREFIX_CLIENT}h2load
 }
 
+experiment_server_setup() {
+    # create file descriptor for writing
+    exec {server_in}<> <(cat)
+    register_fd $Server_in $! # register fd to kill process on close
+
+    # Run nghttpd
+    echo "Starting server" >&2
+    redirect_left nghttpd $1 $2 $3 $4 <&$server_in
+    server_out=$?
+
+    # Give time to the server to start
+    echo "Wait 2s for server to start" >&2
+    sleep 2
+    echo "Server started" >&2
+}
+
+experiment_server_cleanup() {
+    # kill server and children
+    echo 'q' >&$server_in
+
+    cat <&$server_out > $1 # Receive output filename
+
+    # Kill processes
+    close_fd $server_in
+    close_fd $server_out
+}
+
+
 run_experiment() {
     echo "Starting experiment with header_table_size=$1 window_bits=$2 max_frame_size=$3 max_header_list_size=$4" >&2
     setup_experiment
@@ -141,19 +169,8 @@ run_experiment() {
     NGHTTPD_OUT=$EXPERIMENTS/nghttp-$SUFFIX.txt
     H2LOAD_OUT=$EXPERIMENTS/h2load-$SUFFIX.txt
 
-    # create file descriptor for writing
-    # warning: this fails in OS X
-    exec 3<> <(cat)
-    CAT_PID=$!
-
-    # Run nghttpd
-    echo "Running nghttpd" >&2
-    exec 4< <(nghttpd $1 $2 $3 $4 <&3)
-    NGHTTPD_PID=$!
-
-    # Give time to the server to start
-    sleep 2
-    echo "nghttpd started ($NGHTTPD_PID)" >&2
+    # start server
+    experiment_server_setup $1 $2 $3 $4
 
     # Run h2load
     echo "Running h2load" >&2
@@ -163,14 +180,7 @@ run_experiment() {
     echo "h2load finished, terminating server and calculating results" >&2
 
     # Kill server and children
-    echo 'q' >&3
-    cat <&4 > $NGHTTPD_OUT
-
-    # close file descriptors
-    exec 3<&-
-    exec 3>&-
-    exec 4<&-
-    kill -- $CAT_PID
+    experiment_server_cleanup $NGHTTPD_OUT
 
     # get start time and end time from h2load
     start_time=$(awk '/^start-time:/{gsub(/[ \n\t\r]+$/, "", $2); printf $2}' $H2LOAD_OUT)
