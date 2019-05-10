@@ -318,7 +318,7 @@ open_fd() {
 close_fd() {
     # if there is a related process, kill the process if running
     if [ -n "${pids[$1]}" ]; then
-        kill -- ${pids[$1]}
+        kill -- ${pids[$1]} > /dev/null 2>&1 # the process may not exist so we ignore output
         pids=${pids[@]#$1} #remove from array
     fi
     exec $1<&-
