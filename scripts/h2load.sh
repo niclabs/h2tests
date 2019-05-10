@@ -2,7 +2,7 @@
 
 SCRIPT=$0
 PID=$$
-OPTS=`getopt -o hvn:c: --long max-concurrent-streams:,header-table-size:,window-bits:,max-frame-size:,max-header-list-size:,help -n 'parse-options' -- "$@"`
+OPTS=`getopt -o hvn:c: --long binary:,max-concurrent-streams:,header-table-size:,window-bits:,max-frame-size:,max-header-list-size:,help -n 'parse-options' -- "$@"`
 
 if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
 
@@ -12,6 +12,7 @@ eval set -- "$OPTS"
 BIN=${BIN:-"./bin"}
 SCRIPTS=${SCRIPTS:-"./scripts"}
 
+H2LOAD=${H2LOAD:-"$BIN/h2load"}
 MAX_CONCURRENT_STREAMS=1
 HEADER_TABLE_SIZE=4096
 WINDOW_BITS=16
@@ -19,6 +20,7 @@ MAX_FRAME_SIZE=16384
 
 while true; do
   case "$1" in
+    --binary)                   H2LOAD=$2; shift; shift ;;
     --max-concurent-streams)    MAX_CONCURRENT_STREAMS=$2; shift; shift ;;
     --header-table-size)        HEADER_TABLE_SIZE=$2; shift; shift ;;
     --window-bits)              WINDOW_BITS=$2; shift; shift ;;
@@ -41,7 +43,7 @@ usage() {
 }
 
 h2load() {
-	CMD="$BIN/h2load"
+	CMD="$H2LOAD"
 
 	if [ -n "$MAX_CONCURRENT_STREAMS" ]; then
         CMD="$CMD --max-concurrent-streams=$MAX_CONCURRENT_STREAMS"
