@@ -367,6 +367,10 @@ finish() {
 
 trap finish SIGINT SIGTERM
 
+# prepend date in all output
+exec > >(sed "s/^/$(date -u +'%F %T') /")
+exec 2> >(sed "s/^/$(date -u +'%F %T') /" >&2)
+
 # RUN experiments
 test_header_table_size
 test_window_bits
