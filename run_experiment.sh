@@ -332,17 +332,22 @@ close_all_fds() {
     done
 }
 
+register_fd() {
+    if [ -n "$2" ]; then
+        pids[$1]=$2
+    fi
+    fds+=($1)
+}
+
 redirect_left() {
     exec {fd}< <(eval $(printf "%q " "$@")) #explanation https://stackoverflow.com/a/3179059
-    fds+=($fd)
-    pids[$fd]=$!
+    register_fd $fd $!
     return $fd
 }
 
 redirect_right() {
     exec {fd}> >(eval $(printf "%q " "$@")) #explanation https://stackoverflow.com/a/3179059
-    fds+=($fd)
-    pids[$fd]=$!
+    register_fd $fd $!
     return $fd
 }
 
