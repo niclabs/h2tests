@@ -59,6 +59,9 @@ IPV6_PREFIX = $(IPV6_ADDR)/64
 # Begin targets
 #######################################################################
 
+# Include remote targets
+include $(CURDIR)/Makefile.include
+
 # Create build directories
 ALLDIRS := $(BUILD) $(BIN) $(WWW)
 
@@ -112,7 +115,7 @@ $(BIN)/nghttpd $(BIN)/h2load: $(NGHTTP2)/Makefile | $(BIN)
 build-nghttp2: $(BIN)/nghttpd
 
 .PHONY: nghttpd
-nghttpd: $(BIN)/nghttpd $(SERVER_CERT) $(SERVER_KEY)
+nghttpd: $(NGHTTPD) $(SERVER_CERT) $(SERVER_KEY)
 	$(Q) BIN=$(BIN) $(SCRIPTS)/nghttpd.sh $(HTTP_PORT) $(SERVER_KEY) $(SERVER_CERT) \
 		--binary=$(NGHTTPD) \
 		$(if $(MAX_CONCURRENT_STREAMS),--max-concurrent-streams=$(MAX_CONCURRENT_STREAMS)) \
@@ -123,7 +126,7 @@ nghttpd: $(BIN)/nghttpd $(SERVER_CERT) $(SERVER_KEY)
 		--  -d $(WWW)
 
 .PHONY: h2load
-h2load: $(BIN)/h2load
+h2load: $(H2LOAD)
 	$(Q) BIN=$(BIN) SCRIPTS=$(SCRIPTS) $(SCRIPTS)/h2load.sh https://[$(IPV6_ADDR)]:$(HTTP_PORT) \
 		--binary=$(H2LOAD) \
 		$(if $(MAX_CONCURRENT_STREAMS),--max-concurrent-streams=$(MAX_CONCURRENT_STREAMS)) \
@@ -131,7 +134,7 @@ h2load: $(BIN)/h2load
 		$(if $(WINDOW_BITS),--window-bits=$(WINDOW_BITS)) \
 		$(if $(MAX_FRAME_SIZE),--max-frame-size=$(MAX_FRAME_SIZE)) \
 		$(if $(MAX_HEADER_LIST_SIZE),--max-header-list-size=$(MAX_HEADER_LIST_SIZE)) \
-		--
+		-- \
 		$(if $(CLIENTS),-c $(CLIENTS)) \
 		$(if $(REQUESTS),-n $(REQUESTS))
 
@@ -192,16 +195,6 @@ help:
 	@echo "- build-slip-bridge: build slip bridge for native target"
 	@echo "- slip-bridge: run slip bridge"
 	@echo "- slip-router: run slip bridge as 6lowpan border router"
-
-
-# TODO: Get and build nghttp for A8
-
-# Include remote targets
-include $(CURDIR)/Makefile.include
-
-#######################################################################
-# Build environment dependent targets
-#######################################################################
 
 .PHONY: flash-slip-radio
 flash-slip-radio: $(BIN)/slip-radio.$(TARGET)
