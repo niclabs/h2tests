@@ -377,8 +377,10 @@ prepare_server() {
     eval "$MAKE_ENV make iotlab-node-$1-flash-slip-radio" || (echo "Failed to flash radio for node $1" >&2 && exit 1)
 
     echo "Launching slip-router on node $1" >&2
-    server_fd=$(request_fd)
-    exec $server_fd> >(exec env $MAKE_ENV R_IPV6_ADDR=$IPV6_ADDR make iotlab-node-$1-slip-router)
+    redirect_right exec env "$MAKE_ENV R_IPV6_ADDR=$IPV6_ADDR" make iotlab-node-$1-slip-router
+
+    echo "Wait 15s for slip-router to launch on node $1" >&2
+    sleep 15
 }
 
 
@@ -390,9 +392,10 @@ prepare_client() {
     (eval $MAKE_ENV make iotlab-node-$1-flash-slip-radio) || (echo "Failed to flash radio for node $1" >&2 && exit 1)
 
     echo "Launching slip-bridge on node $1" >&2
-    local fd=$(request_fd)
-    $fd> >(exec env $MAKE_ENV make iotlab-node-$1-slip-bridge)
-    client_fds+=($fd)
+    redirect_right exec env $MAKE_ENV make iotlab-node-$1-slip-bridge
+
+    echo "Wait 15s for slip-bridge to launch on node $1" >&2
+    sleep 15
 }
 
 finish() {
