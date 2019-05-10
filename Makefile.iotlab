@@ -52,14 +52,14 @@ COMMANDS += iotlab-auth iotlab-experiment iotlab-node
 $(IOTLAB_CONFIG):
 	iotlab-auth -u $(IOTLAB_USER)
 
+iotlab-id: iotlab-experiment $(IOTLAB_CONFIG)
+	@echo $(if $(IOTLAB_ID),$(IOTLAB_ID),$(error No experiment running))
+
 iotlab-running: iotlab-experiment $(IOTLAB_CONFIG)
-	$(if $(IOTLAB_ID), \
-		$(shell echo $(IOTLAB_ID) >&2), \
-		$(error No experiment running))
+	$(if $(IOTLAB_ID),,$(error No experiment running))
 
 iotlab-submit: iotlab-experiment $(IOTLAB_CONFIG)
 	$(if $(IOTLAB_ID),$(error Found experiment running with id $(IOTLAB_ID)))
-	@echo "No experiment found, submitting" >&2
 	$(if $(Q),,$(info "iotlab-experiment submit \
 						-n $(IOTLAB_NAME) \
 						-d $(IOTLAB_DURATION) \
@@ -70,8 +70,9 @@ iotlab-submit: iotlab-experiment $(IOTLAB_CONFIG)
 						-d $(IOTLAB_DURATION) \
 						-l $(IOTLAB_NODES_LIST) | \
 						grep -m 1 '"id"' | grep -Eo '[[:digit:]]+'))
-	$(if $(shell iotlab-experiment wait -i $(IOTLAB_ID) --timeout $(IOTLAB_WAIT)),$(shell echo $(IOTLAB_ID)), \
+	$(if $(shell iotlab-experiment wait -i $(IOTLAB_ID) --timeout $(IOTLAB_WAIT)),, \
 		$(error Failed to launch experiment $(shell iotlab-experiment stop -i $(IOTLAB_ID) | grep -m 1 '"id"' | grep -Eo '[[:digit:]]+')))
+	$(info OK)
 
 iotlab-stop: iotlab-experiment iotlab-running
 	$(Q)iotlab-experiment stop -i $(IOTLAB_ID)
