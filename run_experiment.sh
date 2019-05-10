@@ -3,7 +3,7 @@
 SCRIPT=$0
 OPTS=`getopt -o s:c:a:p:n:h --long h2-clients:,h2-requests:,name:port:address:client:,server:,help -n 'parse-options' -- "$@"`
 
-if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
+if [ $? != 0 ] ; then echo "Failed parsing options."; exit 1 ; fi
 
 eval set -- "$OPTS"
 
