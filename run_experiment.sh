@@ -1,4 +1,4 @@
-#!/bin/bash
+# !/bin/bash
 
 SCRIPT=$0
 OPTS=`getopt -o s:c:a:p:n:h --long h2-clients:,h2-requests:,name:port:address:client:,server:,help -n 'parse-options' -- "$@"`
@@ -394,7 +394,9 @@ submit_experiment_if_needed() {
 }
 
 prepare_server() {
+    # if not running server or clients in iot-lab no need to flash radio
     [ -n "$1" ] || return
+    [ -n "$2" ] || return
 
     # Flash server radio and launch slip-router
     echo "Flashing radio on node $1" >&2
@@ -409,7 +411,9 @@ prepare_server() {
 
 
 prepare_client() {
+    # if not running client in iot-lab do not flash radio
     [ -n "$1" ] || return
+    [ -n "$2" ] || return
 
     # Flash server radio and launch slip-router
     echo "Flashing radio on node $1" >&2
@@ -437,9 +441,9 @@ exec 2> >(sed "s/^/$(date -u +'%F %T') /" >&2)
 submit_experiment_if_needed
 
 # prepare server before launching
-prepare_server $IOTLAB_SERVER
+prepare_server $IOTLAB_SERVER $IOTLAB_CLIENT
 
-prepare_client $IOTLAB_CLIENT
+prepare_client $IOTLAB_CLIENT $IOTLAB_SERVER
 
 # RUN experiments
 test_header_table_size
