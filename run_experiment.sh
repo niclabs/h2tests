@@ -358,8 +358,20 @@ prepare_server() {
 }
 
 
+finish() {
+    # Perform cleanup tasks
+    close_all_fds
+
+    exit 0
+}
+
+trap finish SIGINT SIGTERM
+
 # RUN experiments
 test_header_table_size
 test_window_bits
 test_max_frame_size
 test_max_header_list_size
+
+# cleanup
+finish
