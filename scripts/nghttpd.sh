@@ -114,7 +114,7 @@ cleanup() {
 exec 3<&0
 
 # Catch term and interrupt signal
-trap cleanup SIGTERM SIGINT EXIT
+trap cleanup SIGTERM EXIT
 
 # Execute server and store data
 START_TIME=$(date +%s.%N)
