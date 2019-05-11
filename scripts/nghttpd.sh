@@ -43,7 +43,7 @@ usage() {
     echo "--max-header-list-size=<size>"
 }
 
-nghttpd() {
+run_nghttpd() {
 	CMD=$NGHTTPD
 
 	if [ -n "$MAX_CONCURRENT_STREAMS" ]; then
@@ -82,7 +82,7 @@ summary() {
     cat <&4
 }
 
-monitor() {
+run_top() {
     exec top -b -d 0.01 > >(grep  "nghttpd$" | awk '$8 ~ /^R$/ {printf "%-2s %-6s %-6s\n", system("echo -n `date +%s.%N`"), $9, $10}')
 }
 
@@ -115,11 +115,11 @@ trap cleanup SIGTERM SIGINT
 START_TIME=$(date +%s.%N)
 
 # Start monitoring process
-exec 4< <(monitor)
+exec 4< <(run_top)
 TOP_PID=$!
 
 # Run nghttpd
-nghttpd $* 1>&2 &
+run_nghttpd $* 1>&2 &
 NGHTTPD_PID=$!
 
 # Wait for 'q' character
