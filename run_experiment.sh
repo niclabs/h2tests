@@ -428,8 +428,12 @@ prepare_client() {
 }
 
 finish() {
+    status=$?
+
     # Perform cleanup tasks
     close_all_fds
+
+    exit $status
 }
 
 trap finish SIGINT SIGTERM EXIT
