@@ -89,6 +89,8 @@ run_top() {
 }
 
 cleanup() {
+    status=$?
+
     # kill running processes
     kill -- $TOP_PID 2>/dev/null
     kill -- $NGHTTPD_PID
@@ -104,14 +106,15 @@ cleanup() {
     exec 3<&-
     exec 4<&-
 
-    exit 0
+    # exit with the last status given
+    exit $status
 }
 
 # Open file descriptor 3 from stdin
 exec 3<&0
 
 # Catch term and interrupt signal
-trap cleanup SIGTERM SIGINT
+trap cleanup SIGTERM SIGINT EXIT
 
 # Execute server and store data
 START_TIME=$(date +%s.%N)
@@ -131,6 +134,3 @@ while
 do
     :
 done
-
-# Terminate execution
-cleanup
