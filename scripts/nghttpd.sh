@@ -2,7 +2,7 @@
 
 SCRIPT=$0
 PID=$$
-OPTS=`getopt -o vhd: --long max-concurrent-streams:,header-table-size:,window-bits:,max-frame-size:,max-header-list-size:,binary:,help -n $SCRIPT -- "$@"`
+OPTS=`getopt -o vhd:o: --long output:,max-concurrent-streams:,header-table-size:,window-bits:,max-frame-size:,max-header-list-size:,binary:,help -n $SCRIPT -- "$@"`
 
 if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
 
@@ -17,6 +17,7 @@ HEADER_TABLE_SIZE=4096
 WINDOW_BITS=16
 MAX_FRAME_SIZE=16384
 
+
 while true; do
   case "$1" in
     --binary)                   NGHTTPD=$2; shift; shift ;;
@@ -25,6 +26,7 @@ while true; do
     --window-bits)              WINDOW_BITS=$2; shift; shift ;;
     --max-frame-size)           MAX_FRAME_SIZE=$2; shift; shift ;;
     --max-header-list-size)     MAX_HEADER_LIST_SIZE=$2; shift; shift ;;
+    -o | --output )             OUTPUT=$2; shift; shift ;;
     -h | --help )               HELP=true; shift ;;
     -- ) shift; break ;;
     * ) break ;;
@@ -70,8 +72,6 @@ nghttpd() {
 summary() {
     END_TIME=$(date +%s.%N)
 
-    echo "start-time: $START_TIME"
-    echo "end-time: $END_TIME"
     echo "max-concurrent-streams: $MAX_CONCURRENT_STREAMS"
     echo "header-table-size: $HEADER_TABLE_SIZE"
     echo "window-bits: $WINDOW_BITS"
@@ -88,11 +88,15 @@ monitor() {
 
 cleanup() {
     # kill running processes
-    kill -- $TOP_PID
+    kill -- $TOP_PID 2>/dev/null
     kill -- $NGHTTPD_PID
 
-    # Show summary
-    summary
+    # Send summary to specified output
+    if [ -n "$OUTPUT" ];then
+        summary > $OUTPUT
+    else
+        summary
+    fi
 
     # close file descriptors
     exec 3<&-
