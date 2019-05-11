@@ -72,6 +72,8 @@ run_nghttpd() {
 summary() {
     END_TIME=$(date +%s.%N)
 
+    echo "start-time: $START_TIME"
+    echo "end-time: $END_TIME"
     echo "max-concurrent-streams: $MAX_CONCURRENT_STREAMS"
     echo "header-table-size: $HEADER_TABLE_SIZE"
     echo "window-bits: $WINDOW_BITS"
