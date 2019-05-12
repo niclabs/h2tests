@@ -46,22 +46,7 @@ while true; do
   esac
 done
 
-if [ -n "$IOTLAB_SERVER" ]; then
-    [[ $IOTLAB_SERVER -gt 0 ]] || { usage "IoT-Lab server node number must be greater than 0"; exit 1; }
-
-    # Parameters for make
-    MAKE_PREFIX_SERVER="iotlab-node-$IOTLAB_SERVER-"
-    MAKE_ENV="PREFIX_DISABLE=1"
-fi
-
-if [ -n "$IOTLAB_CLIENT" ]; then
-    [[ $IOTLAB_CLIENT -gt 0 ]] || { usage "IoT-Lab client node number must be greater than 0"; exit 1; }
-
-    # Parameters for make
-    MAKE_PREFIX_CLIENT="iotlab-node-$IOTLAB_CLIENT-"
-    MAKE_ENV="PREFIX_DISABLE=1"
-fi
-
+MAKE_ENV="PREFIX_DISABLE=1"
 IPV6_PREFIX=$IPV6_ADDR/64
 TTY=/dev/ttyA8_M3
 
