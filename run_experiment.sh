@@ -62,6 +62,9 @@ if [ -n "$IOTLAB_CLIENT" ]; then
     MAKE_ENV="PREFIX_DISABLE=1"
 fi
 
+IPV6_PREFIX=$IPV6_ADDR/64
+TTY=/dev/ttyA8_M3
+
 # Default directories
 BIN=${BIN:-"./bin"}
 WWW=${WWW:-"./build/www"}
@@ -96,6 +99,21 @@ WINDOW_BITS_RANGE=$(seq 0 30)
 MAX_FRAME_SIZE_RANGE=$(seq 14 24) # 2**n
 MAX_HEADER_LIST_SIZE_RANGE=$(seq 1 4096)
 
+exec_in_a8() {
+    node=$1; shift
+    cmd="cd ~/A8/h2tests && $(printf "%q " "$@")"
+    echo $cmd >&2
+    exec ssh -tt root@node-a8-$node $cmd
+}
+
+run_in_a8() {
+    node=$1; shift
+    cmd="cd ~/A8/h2tests && $(printf "%q " "$@")"
+    echo $cmd >&2
+    ssh -tt root@node-a8-$node $cmd
+}
+
+
 setup_experiment() {
     # Create random index file to prevent caching
     head -c $INDEX_HTML_SIZE < /dev/urandom > $WWW/index.html
@@ -103,72 +121,55 @@ setup_experiment() {
 
 cleanup_experiment() {
     # Remove index file
-    rm build/www/index.html
+    rm $WWW/index.html
 }
 
-nghttpd() {
-    ENV="$MAKE_ENV R_HTTP_PORT=$HTTP_PORT R_IPV6_ADDR=$IPV6_ADDR"
-    ENV="$ENV R_MAX_CONCURRENT_STREAMS=$MAX_CONCURRENT_STREAMS R_HEADER_TABLE_SIZE=$1 R_WINDOW_BITS=$2 R_MAX_FRAME_SIZE=$3"
+launch_slip_bridge() {
+	exec_in_a8 $1 $BIN/slip-bridge.native -s $TTY -B 500000
+}
 
-	if [ -n "$4" ]; then
-        ENV="$ENV R_MAX_HEADER_LIST_SIZE=$4"
+launch_slip_router() {
+	exec_in_a8 $1 $BIN/slip-bridge.native -s $TTY -r $IPV6_PREFIX -B 500000
+}
+
+launch_server() {
+    out=$5
+    if [ -n "$IOTLAB_SERVER" ]; then
+        exec_in_a8 $IOTLAB_SERVER ./scripts/nghttpd.sh -o $out \
+            --max-concurrent-streams=$MAX_CONCURRENT_STREAMS \
+            --header-table-size=$1 \
+            --window-bits=$2 \
+            --max-frame-size=$3 $(test -n "$4" && echo "--max-header-list-size=$4") \
+            -d $WWW $HTTP_PORT $BIN/server.key $BIN/server.crt
+    else
+        ./scripts/nghttpd.sh -o $out \
+            --max-concurrent-streams=$MAX_CONCURRENT_STREAMS \
+            --header-table-size=$1 \
+            --window-bits=$2 \
+            --max-frame-size=$3 $(test -n "$4" && echo "--max-header-list-size=$4") \
+            -d $WWW $HTTP_PORT $BIN/server.key $BIN/server.crt
     fi
-
-    exec env $ENV make ${MAKE_PREFIX_SERVER}nghttpd
 }
 
-h2load() {
-    ENV="$MAKE_ENV R_HTTP_PORT=$HTTP_PORT R_IPV6_ADDR=$IPV6_ADDR"
-    ENV="$ENV R_MAX_CONCURRENT_STREAMS=$MAX_CONCURRENT_STREAMS R_HEADER_TABLE_SIZE=$1 R_WINDOW_BITS=$2 R_MAX_FRAME_SIZE=$3"
-
-	if [ -n "$4" ]; then
-        ENV="$ENV R_MAX_HEADER_LIST_SIZE=$4"
+launch_clients() {
+    out=$5
+    if [ -n "$IOTLAB_CLIENT" ]; then
+        run_in_a8 $IOTLAB_CLIENT ./scripts/h2load.sh -o $out \
+            --max-concurrent-streams=$MAX_CONCURRENT_STREAMS \
+            --header-table-size=$1 \
+            --window-bits=$2 \
+            --max-frame-size=$3 $(test -n "$4" && echo "--max-header-list-size=$4") \
+            -c $H2LOAD_CLIENTS -n $H2LOAD_REQUESTS \
+            https://[$IPV6_ADDR]:$HTTP_PORT
+    else
+        ./scripts/h2load.sh -o $out \
+            --max-concurrent-streams=$MAX_CONCURRENT_STREAMS \
+            --header-table-size=$1 \
+            --window-bits=$2 \
+            --max-frame-size=$3 $(test -n "$4" && echo "--max-header-list-size=$4") \
+            -c $H2LOAD_CLIENTS -n $H2LOAD_REQUESTS \
+            https://[$IPV6_ADDR]:$HTTP_PORT
     fi
-
-    ENV="$ENV R_CLIENTS=$H2LOAD_CLIENTS R_REQUESTS=$H2LOAD_REQUESTS"
-
-    exec env $ENV make ${MAKE_PREFIX_CLIENT}h2load
-}
-
-experiment_server_setup() {
-    # create file descriptor for writing
-    exec {server_in}<> <(cat)
-    register_fd $Server_in $! # register fd to kill process on close
-
-    # Run nghttpd
-    echo "Starting server" >&2
-    redirect_left nghttpd $1 $2 $3 $4 <&$server_in
-    server_out=$?
-
-    # Give time to the server to start
-    echo "Wait 2s for server to start" >&2
-    sleep 2
-    echo "Server started" >&2
-}
-
-experiment_server_cleanup() {
-    # kill server and children
-    echo 'q' >&$server_in
-
-    cat <&$server_out > $1 # Receive output filename
-
-    # Kill processes
-    close_fd $server_in
-    close_fd $server_out
-}
-
-experiment_client_setup() {
-    echo "Running h2load" >&2
-    redirect_left h2load $1 $2 $3 $4
-    client_out=$?
-}
-
-experiment_client_cleanup() {
-    # wait for h2load to finish
-    cat <&$client_out > $1
-
-    # close the file descriptor
-    close_fd $client_out
 }
 
 run_experiment() {
@@ -180,22 +181,50 @@ run_experiment() {
         SUFFIX="$1-$2-$3-$4"
     fi
 
-    NGHTTPD_OUT=$SERVER/nghttp-$SUFFIX.txt
-    H2LOAD_OUT=$CLIENTS/h2load-$SUFFIX.txt
+    nghttpd_out=$SERVER/nghttp-$SUFFIX.txt
+    h2load_out=$CLIENTS/h2load-$SUFFIX.txt
 
-    # start server
-    experiment_server_setup $1 $2 $3 $4
+    # Run nghttpd
+    echo "Starting server" >&2
+    redirect_right launch_server $1 $2 $3 "$4" $nghttpd_out
+    server_in=$?
+    server_pid=$!
+
+    # Give time to the server to start
+    echo "Wait 2s for server to start" >&2
+    sleep 2
+    echo "Server started" >&2
+
+    # write h2load headers
+    echo "header_table_size: $1" > $h2load_out
+    echo "window_bits: $2" >> $h2load_out
+    echo "max_frame_size: $3" >> $h2load_out
+    echo "max_header_list_size: $4" >> $h2load_out
+    echo "" >> $h2load_out
+    printf "%-20s %-20s " "start-time" "end-time" >> $h2load_out
+    printf "%-8s %-8s %-8s %-12s %-12s %-12s %-12s " "total" "success" "failed" "req-time-min" "req-time-max" "req-time-avg" "req-time-std" >> $h2load_out
+    printf "\n" >> $h2load_out
 
     # start client
-    experiment_client_setup $1 $2 $3 $4
-    experiment_client_cleanup $H2LOAD_OUT
+    echo "Launching clients" >&2
+    launch_clients $1 $2 $3 "$4" $h2load_out
+    echo "Clients finished, sending signal to server" >&2
 
-    # Kill server and children
-    experiment_server_cleanup $NGHTTPD_OUT
+    # kill server
+    echo 'qqq' >&$server_in
 
-    # get start time and end time from h2load
-    start_time=$(awk '/^start-time:/{gsub(/[ \n\t\r]+$/, "", $2); printf $2}' $H2LOAD_OUT)
-    end_time=$(awk '/^end-time:/{gsub(/[ \n\t\r]+$/, "", $2); printf $2}' $H2LOAD_OUT)
+    # wait for the process to finish
+    echo -n "Waiting for server to finish ... " >&2
+    wait_for_pid $server_pid
+
+    # kill processes
+    close_fd $server_in
+
+    # write results
+    echo "Writing results" >&2
+    # get start time and end time from nghttpd
+    start_time=$(awk '/^start-time:/{gsub(/[ \n\t\r]+$/, "", $2); printf $2}' $nghttpd_out)
+    end_time=$(awk '/^end-time:/{gsub(/[ \n\t\r]+$/, "", $2); printf $2}' $nghttpd_out)
 
     # write experiment data
     # start-time end-time
@@ -210,10 +239,10 @@ run_experiment() {
     fi
 
     # total success failed req-time-min req-time-max req-time-avg req-time-std
-    awk 'NR > 9 {printf "%-8s %-8s %-8s %-12s %-12s %-12s %-12s ", $1, $2, $3, $4, $5, $6, $7}' $H2LOAD_OUT >> $5
+    awk 'NR > 9 {printf "%-8s %-8s %-8s %-12s %-12s %-12s %-12s ", $1, $2, $3, $4, $5, $6, $7}' $h2load_out >> $5
 
     # cpu-avg cpu-std mem-avg mem-std
-    awk -f $SCRIPTS/nghttpd.awk -v start_time=$start_time -v end_time=$end_time $NGHTTPD_OUT >> $5
+    awk -f $SCRIPTS/nghttpd.awk -v start_time=$start_time -v end_time=$end_time $nghttpd_out >> $5
 
     # TODO: get consumption data if running on iotlab-node
 
@@ -360,6 +389,16 @@ register_fd() {
     fds+=($1)
 }
 
+wait_for_pid() {
+    wait $1 2>/dev/null && return # try to wait normally
+
+    # otherwise monitor the process file
+    while [ -e /proc/$1 ]
+    do
+        sleep .6
+    done
+}
+
 redirect_left() {
     exec {fd}< <(eval $(printf "%q " "$@")) #explanation https://stackoverflow.com/a/3179059
     register_fd $fd $!
@@ -383,7 +422,7 @@ submit_experiment_if_needed() {
         IOTLAB_ID=$iotlab_id_tmp
     else
         # not found, launch experiment
-        exec env $MAKE_ENV make iotlab-submit
+        eval $MAKE_ENV make iotlab-submit
 
         iotlab_id_tmp=$(make iotlab-id)
         [[ $iotlab_id_tmp =~ ^[0-9]+$ ]] || (echo "Could not launch experiment" && exit 1)
@@ -396,35 +435,36 @@ submit_experiment_if_needed() {
 
 prepare_server() {
     # if not running server or clients in iot-lab no need to flash radio
-    [ -n "$1" ] || return
-    [ -n "$2" ] || return
+    [ -n "$IOTLAB_SERVER" ] || return
+    [ -n "$IOTLAB_CLIENT" ] || return
 
     # Flash server radio and launch slip-router
-    echo "Flashing radio on node $1" >&2
-    eval "$MAKE_ENV make iotlab-node-$1-flash-slip-radio" || (echo "Failed to flash radio for node $1" >&2 && exit 1)
+    echo "Flashing radio on node $IOTLAB_SERVER" >&2
+    (eval $MAKE_ENV make iotlab-node-$IOTLAB_SERVER-flash-slip-radio) || (echo "Failed to flash radio for node $IOTLAB_SERVER" >&2 && exit 1)
 
-    echo "Launching slip-router on node $1" >&2
-    redirect_right exec env "$MAKE_ENV R_IPV6_ADDR=$IPV6_ADDR" make iotlab-node-$1-slip-router
+    echo "Launching slip-router on node $IOTLAB_SERVER" >&2
+    redirect_right launch_slip_router $IOTLAB_SERVER
 
-    echo "Wait 15s for slip-router to launch on node $1" >&2
-    sleep 15
+    echo "Wait 5s for slip-router to launch on node $IOTLAB_SERVER" >&2
+    sleep 5
 }
 
 
-prepare_client() {
+prepare_clients() {
     # if not running client in iot-lab do not flash radio
-    [ -n "$1" ] || return
-    [ -n "$2" ] || return
+    [ -n "$IOTLAB_CLIENT" ] || return
+    [ -n "$IOTLAB_SERVER" ] || return
+    [ $H2LOAD_CLIENTS -gt 1 ] && (echo "Number of clients running per node in iot-lab cannot be greater than 1" ; exit 1)
 
     # Flash server radio and launch slip-router
-    echo "Flashing radio on node $1" >&2
-    (eval $MAKE_ENV make iotlab-node-$1-flash-slip-radio) || (echo "Failed to flash radio for node $1" >&2 && exit 1)
+    echo "Flashing radio on node $IOTLAB_CLIENT" >&2
+    (eval $MAKE_ENV make iotlab-node-$IOTLAB_CLIENT-flash-slip-radio) || (echo "Failed to flash radio for node $IOTLAB_CLIENT" >&2 && exit 1)
 
-    echo "Launching slip-bridge on node $1" >&2
-    redirect_right exec env $MAKE_ENV make iotlab-node-$1-slip-bridge
+    echo "Launching slip-bridge on node $IOTLAB_CLIENT" >&2
+    redirect_right launch_slip_bridge $IOTLAB_CLIENT
 
-    echo "Wait 15s for slip-bridge to launch on node $1" >&2
-    sleep 15
+    echo "Wait 5s for slip-bridge to launch on node $IOTLAB_CLIENT" >&2
+    sleep 5
 }
 
 finish() {
@@ -446,11 +486,13 @@ exec 2> >(sed "s/^/$(date -u +'%F %T') /" >&2)
 submit_experiment_if_needed
 
 # prepare server before launching
-prepare_server $IOTLAB_SERVER $IOTLAB_CLIENT
+prepare_server
 
-prepare_client $IOTLAB_CLIENT $IOTLAB_SERVER
+prepare_clients
 
 # RUN experiments
+#run_experiment 4096 16 16384 4096 test.txt
+
 test_header_table_size
 test_window_bits
 test_max_frame_size
