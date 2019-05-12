@@ -152,6 +152,7 @@ launch_clients() {
                 https://[$IPV6_ADDR]:$HTTP_PORT &
             client_pids+=($!)
         done
+        echo "Clients launched, waiting" >&2
 
         # wait for all clients to finish
         for pid in ${client_pids[*]}
@@ -208,11 +209,17 @@ run_experiment() {
     echo "Clients finished, sending signal to server" >&2
 
     # kill server
-    echo 'qqq' >&$server_in
+    echo 'q' >&$server_in
 
     # wait for the process to finish
     echo -n "Waiting for server to finish ... " >&2
-    wait_for_pid $server_pid
+    elapsed=0
+    while [ -e /proc/$server_pid ] && [ $elapsed -le 5 ] #wait at most 5 seconds
+    do
+        echo 'q' > $server_in # just in case
+        sleep .6
+        elapsed=$(echo - | awk "{print $elapsed + .6}")
+    done
 
     # kill processes
     close_fd $server_in
@@ -504,7 +511,7 @@ prepare_server
 prepare_clients
 
 # RUN experiments
-#run_experiment 4096 16 16384 4096 test.txt
+#run_experiment 67 16 16384 4096 test.txt
 
 test_header_table_size
 test_window_bits
