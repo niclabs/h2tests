@@ -37,7 +37,7 @@ while true; do
     -p | --port)     HTTP_PORT=$2; shift; shift ;;
     -n | --name)     NAME=$2; shift; shift ;;
     -s | --server)   IOTLAB_SERVER=$2; shift; shift ;;
-    -c | --client)   IOTLAB_CLIENT=$2; shift; shift ;;
+    -c | --client)   IOTLAB_CLIENTS=$2; shift; shift ;;
     --h2-clients)    H2LOAD_CLIENTS=$2; shift; shift ;;
     --h2-requests)   H2LOAD_REQUESTS=$2; shift; shift ;;
     -h | --help )    usage; exit 0 ;;
@@ -62,6 +62,7 @@ SERVER=$RESULTS/$NAME/server
 CLIENTS=$RESULTS/$NAME/clients
 
 # Create directories
+mkdir -p $RESULTS
 mkdir -p $WWW
 mkdir -p $SERVER
 mkdir -p $CLIENTS
@@ -138,14 +139,26 @@ launch_server() {
 
 launch_clients() {
     out=$5
-    if [ -n "$IOTLAB_CLIENT" ]; then
-        run_in_a8 $IOTLAB_CLIENT ./scripts/h2load.sh -o $out \
-            --max-concurrent-streams=$MAX_CONCURRENT_STREAMS \
-            --header-table-size=$1 \
-            --window-bits=$2 \
-            --max-frame-size=$3 $(test -n "$4" && echo "--max-header-list-size=$4") \
-            -c $H2LOAD_CLIENTS -n $H2LOAD_REQUESTS \
-            https://[$IPV6_ADDR]:$HTTP_PORT
+    if [ -n "$IOTLAB_CLIENTS" ]; then
+        # launch all clients
+        for node in $(split , $IOTLAB_CLIENTS)
+        do
+            run_in_a8 $node ./scripts/h2load.sh -o $out \
+                --max-concurrent-streams=$MAX_CONCURRENT_STREAMS \
+                --header-table-size=$1 \
+                --window-bits=$2 \
+                --max-frame-size=$3 $(test -n "$4" && echo "--max-header-list-size=$4") \
+                -c $H2LOAD_CLIENTS -n $H2LOAD_REQUESTS \
+                https://[$IPV6_ADDR]:$HTTP_PORT &
+            client_pids+=($!)
+        done
+
+        # wait for all clients to finish
+        for pid in ${client_pids[*]}
+        do
+            echo "Waiting for $pid" >&2
+            wait_for_pid $pid
+        done
     else
         ./scripts/h2load.sh -o $out \
             --max-concurrent-streams=$MAX_CONCURRENT_STREAMS \
@@ -387,7 +400,7 @@ wait_for_pid() {
 
 redirect_left() {
     exec {fd}< <(eval $(printf "%q " "$@")) #explanation https://stackoverflow.com/a/3179059
-    register_fd $fd $!
+    register_fd $fd $resources!
     return $fd
 }
 
@@ -397,9 +410,19 @@ redirect_right() {
     return $fd
 }
 
+function join() {
+    local IFS="$1"; shift; echo "$*";
+}
+
+function split() {
+    local IFS=$1; shift
+    read -r -a array <<< "$*"
+    echo ${array[@]}
+}
+
 submit_experiment_if_needed() {
     # check if we are running in iot-lab
-    [[ -z "$IOTLAB_SERVER" ]] && [[ -z "$IOTLAB_CLIENT" ]] && return
+    [[ -z "$IOTLAB_SERVER" ]] && [[ -z "$IOTLAB_CLIENTS" ]] && return
 
     # check if experiment is running
     local iotlab_id_tmp=$(make iotlab-id)
@@ -407,8 +430,9 @@ submit_experiment_if_needed() {
     if [[ $iotlab_id_tmp =~ ^[0-9]+$ ]]; then
         IOTLAB_ID=$iotlab_id_tmp
     else
+        local resources=$(join + $IOTLAB_SERVER $(split , $IOTLAB_CLIENTS))
         # not found, launch experiment
-        eval $MAKE_ENV make iotlab-submit
+        eval $MAKE_ENV IOTLAB_RESOURCES=$resources make iotlab-submit
 
         iotlab_id_tmp=$(make iotlab-id)
         [[ $iotlab_id_tmp =~ ^[0-9]+$ ]] || (echo "Could not launch experiment" && exit 1)
@@ -422,7 +446,7 @@ submit_experiment_if_needed() {
 prepare_server() {
     # if not running server or clients in iot-lab no need to flash radio
     [ -n "$IOTLAB_SERVER" ] || return
-    [ -n "$IOTLAB_CLIENT" ] || return
+    [ -n "$IOTLAB_CLIENTS" ] || return
 
     # Flash server radio and launch slip-router
     echo "Flashing radio on node $IOTLAB_SERVER" >&2
@@ -438,19 +462,22 @@ prepare_server() {
 
 prepare_clients() {
     # if not running client in iot-lab do not flash radio
-    [ -n "$IOTLAB_CLIENT" ] || return
+    [ -n "$IOTLAB_CLIENTS" ] || return
     [ -n "$IOTLAB_SERVER" ] || return
     [ $H2LOAD_CLIENTS -gt 1 ] && (echo "Number of clients running per node in iot-lab cannot be greater than 1" ; exit 1)
 
-    # Flash server radio and launch slip-router
-    echo "Flashing radio on node $IOTLAB_CLIENT" >&2
-    (eval $MAKE_ENV make iotlab-node-$IOTLAB_CLIENT-flash-slip-radio) || (echo "Failed to flash radio for node $IOTLAB_CLIENT" >&2 && exit 1)
+    for node in $(split , $IOTLAB_CLIENTS)
+    do
+        # Flash server radio and launch slip-router
+        echo "Flashing radio on node $node" >&2
+        (eval $MAKE_ENV make iotlab-node-$node-flash-slip-radio) || (echo "Failed to flash radio for node $node" >&2 && exit 1)
 
-    echo "Launching slip-bridge on node $IOTLAB_CLIENT" >&2
-    redirect_right launch_slip_bridge $IOTLAB_CLIENT
+        echo "Launching slip-bridge on node $node" >&2
+        redirect_right launch_slip_bridge $node
 
-    echo "Wait 5s for slip-bridge to launch on node $IOTLAB_CLIENT" >&2
-    sleep 5
+        echo "Wait 5s for slip-bridge to launch on node $node" >&2
+        sleep 5
+    done
 }
 
 finish() {
@@ -480,6 +507,6 @@ prepare_clients
 #run_experiment 4096 16 16384 4096 test.txt
 
 test_header_table_size
-#test_window_bits
-#test_max_frame_size
-#test_max_header_list_size
+test_window_bits
+test_max_frame_size
+test_max_header_list_size
