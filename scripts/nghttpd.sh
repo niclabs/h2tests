@@ -2,7 +2,7 @@
 
 SCRIPT=$0
 PID=$$
-OPTS=`getopt -o vhd:o: --long output:,max-concurrent-streams:,header-table-size:,window-bits:,max-frame-size:,max-header-list-size:,binary:,help -n $SCRIPT -- "$@"`
+OPTS=`getopt -o vhd:o: --long output:,max-concurrent-streams:,header-table-size:,window-bits:,max-frame-size:,max-header-list-size:,help -n $SCRIPT -- "$@"`
 
 if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
 
@@ -10,7 +10,9 @@ eval set -- "$OPTS"
 
 # Default directories
 BIN=${BIN:-"./bin"}
-NGHTTPD=${NGHTTPD:-"$BIN/nghttpd"}
+
+# Update path with local bin dir
+PATH=$PATH:$BIN
 
 MAX_CONCURRENT_STREAMS=1
 HEADER_TABLE_SIZE=4096
@@ -20,7 +22,6 @@ MAX_FRAME_SIZE=16384
 
 while true; do
   case "$1" in
-    --binary)                   NGHTTPD=$2; shift; shift ;;
     --max-concurrent-streams)   MAX_CONCURRENT_STREAMS=$2; shift; shift ;;
     --header-table-size)        HEADER_TABLE_SIZE=$2; shift; shift ;;
     --window-bits)              WINDOW_BITS=$2; shift; shift ;;
@@ -44,7 +45,7 @@ usage() {
 }
 
 run_nghttpd() {
-	CMD=$NGHTTPD
+	CMD="nghttpd"
 
 	if [ -n "$MAX_CONCURRENT_STREAMS" ]; then
         CMD="$CMD --max-concurrent-streams=$MAX_CONCURRENT_STREAMS"

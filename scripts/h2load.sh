@@ -1,8 +1,8 @@
-#!/bin/bash
+#!/bin/bash -e
 
 SCRIPT=$0
 PID=$$
-OPTS=`getopt -o hvn:c: --long binary:,max-concurrent-streams:,header-table-size:,window-bits:,max-frame-size:,max-header-list-size:,help -n 'parse-options' -- "$@"`
+OPTS=`getopt -o hvn:c:o: --long output:,max-concurrent-streams:,header-table-size:,window-bits:,max-frame-size:,max-header-list-size:,help -n 'parse-options' -- "$@"`
 
 if [ $? != 0 ] ; then echo "Failed parsing options." >&2 ; exit 1 ; fi
 
@@ -12,7 +12,9 @@ eval set -- "$OPTS"
 BIN=${BIN:-"./bin"}
 SCRIPTS=${SCRIPTS:-"./scripts"}
 
-H2LOAD=${H2LOAD:-"$BIN/h2load"}
+# Update path with local bin dir
+PATH=$PATH:$BIN
+
 MAX_CONCURRENT_STREAMS=1
 HEADER_TABLE_SIZE=4096
 WINDOW_BITS=16
@@ -20,12 +22,12 @@ MAX_FRAME_SIZE=16384
 
 while true; do
   case "$1" in
-    --binary)                   H2LOAD=$2; shift; shift ;;
     --max-concurent-streams)    MAX_CONCURRENT_STREAMS=$2; shift; shift ;;
     --header-table-size)        HEADER_TABLE_SIZE=$2; shift; shift ;;
     --window-bits)              WINDOW_BITS=$2; shift; shift ;;
     --max-frame-size)           MAX_FRAME_SIZE=$2; shift; shift ;;
     --max-header-list-size)     MAX_HEADER_LIST_SIZE=$2; shift; shift ;;
+    -o | --output )             OUTPUT=$2; shift; shift ;;
     -h | --help )               HELP=true; shift ;;
     -- ) shift; break ;;
     * ) break ;;
@@ -42,8 +44,8 @@ usage() {
     echo "--max-header-list-size=<size>"
 }
 
-h2load() {
-	CMD="$H2LOAD"
+run_h2load() {
+	CMD=h2load
 
 	if [ -n "$MAX_CONCURRENT_STREAMS" ]; then
         CMD="$CMD --max-concurrent-streams=$MAX_CONCURRENT_STREAMS"
@@ -68,22 +70,17 @@ h2load() {
     eval $CMD $*
 }
 
-summary() {
-    END_TIME=$(date +%s.%N)
-
-    echo "start-time: $START_TIME"
-    echo "end-time: $END_TIME"
-    echo "max-concurrent-streams: $MAX_CONCURRENT_STREAMS"
-    echo "header-table-size: $HEADER_TABLE_SIZE"
-    echo "window-bits: $WINDOW_BITS"
-    echo "max-frame-size: $MAX_FRAME_SIZE"
-    echo "max-header-list-size: $MAX_HEADER_LIST_SIZE"
-    echo ""
-
-    awk -f $SCRIPTS/h2load.awk <&0
-}
-
+tmp=/tmp/h2load-$PID.log
 # Execute server and store data
-START_TIME=$(date +%s.%N)
-h2load $* > /tmp/h2load-$PID.log
-summary < /tmp/h2load-$PID.log
+start_time=$(date +%s.%N)
+run_h2load $* >> $tmp
+end_time=$(date +%s.%N)
+
+# Send summary to specified output
+if [ -n "$OUTPUT" ];then
+    awk -v start_time=$start_time -v end_time=$end_time  -f $SCRIPTS/h2load.awk $tmp >> $OUTPUT
+else
+    awk -v start_time=$start_time -v end_time=$end_time  -f $SCRIPTS/h2load.awk $tmp
+fi
+
+rm $tmp
