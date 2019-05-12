@@ -50,8 +50,6 @@ QUIET ?= 1
 COMMANDS += openssl wget git patch
 
 TTY ?= $(if $(shell test $(BUILD_ENV) = iotlab-node && echo true),/dev/ttyA8_M3)
-NGHTTPD ?= $(if $(shell test $(BUILD_ENV) = iotlab-site && echo true),$(HOME)/.local/bin/nghttpd,$(BIN)/nghttpd)
-H2LOAD ?= $(if $(shell test $(BUILD_ENV) = iotlab-site && echo true),$(HOME)/.local/bin/h2load,$(BIN)/h2load)
 IPV6_ADDR  ?= 2001:dead:beef::1
 IPV6_PREFIX = $(IPV6_ADDR)/64
 
@@ -112,30 +110,7 @@ $(BIN)/nghttpd $(BIN)/h2load: $(NGHTTP2)/Makefile | $(BIN)
 	$(Q) $(MAKE) -C $(NGHTTP2) install
 
 .PHONY: build-nghttp2
-build-nghttp2: $(BIN)/nghttpd
-
-.PHONY: nghttpd
-nghttpd: $(NGHTTPD) $(SERVER_CERT) $(SERVER_KEY)
-	$(Q) BIN=$(BIN) $(SCRIPTS)/nghttpd.sh \
-		--binary=$(NGHTTPD) \
-		$(if $(MAX_CONCURRENT_STREAMS),--max-concurrent-streams=$(MAX_CONCURRENT_STREAMS)) \
-		$(if $(HEADER_TABLE_SIZE),--header-table-size=$(HEADER_TABLE_SIZE)) \
-		$(if $(WINDOW_BITS),--window-bits=$(WINDOW_BITS)) \
-		$(if $(MAX_FRAME_SIZE),--max-frame-size=$(MAX_FRAME_SIZE)) \
-		$(if $(MAX_HEADER_LIST_SIZE),--max-header-list-size=$(MAX_HEADER_LIST_SIZE)) \
-		-d $(WWW) $(HTTP_PORT) $(SERVER_KEY) $(SERVER_CERT)
-
-.PHONY: h2load
-h2load: $(H2LOAD)
-	$(Q) BIN=$(BIN) SCRIPTS=$(SCRIPTS) $(SCRIPTS)/h2load.sh \
-		--binary=$(H2LOAD) \
-		$(if $(MAX_CONCURRENT_STREAMS),--max-concurrent-streams=$(MAX_CONCURRENT_STREAMS)) \
-		$(if $(HEADER_TABLE_SIZE),--header-table-size=$(HEADER_TABLE_SIZE)) \
-		$(if $(WINDOW_BITS),--window-bits=$(WINDOW_BITS)) \
-		$(if $(MAX_FRAME_SIZE),--max-frame-size=$(MAX_FRAME_SIZE)) \
-		$(if $(MAX_HEADER_LIST_SIZE),--max-header-list-size=$(MAX_HEADER_LIST_SIZE)) \
-		$(if $(CLIENTS),-c $(CLIENTS)) \
-		$(if $(REQUESTS),-n $(REQUESTS)) https://[$(IPV6_ADDR)]:$(HTTP_PORT)
+build-nghttp2: $(BIN)/nghttpd $(BIN)/h2load
 
 .PHONY: clean
 clean:
