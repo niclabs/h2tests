@@ -102,14 +102,14 @@ MAX_HEADER_LIST_SIZE_RANGE=$(seq 1 4096)
 exec_in_a8() {
     node=$1; shift
     cmd="cd ~/A8/h2tests && $(printf "%q " "$@")"
-    echo $cmd >&2
+    echo "node-a8-$node: $cmd" >&2
     exec ssh -tt root@node-a8-$node $cmd
 }
 
 run_in_a8() {
     node=$1; shift
     cmd="cd ~/A8/h2tests && $(printf "%q " "$@")"
-    echo $cmd >&2
+    echo "node-a8-$node: $cmd" >&2
     ssh -tt root@node-a8-$node $cmd
 }
 
@@ -239,12 +239,13 @@ run_experiment() {
     fi
 
     # total success failed req-time-min req-time-max req-time-avg req-time-std
-    awk 'NR > 9 {printf "%-8s %-8s %-8s %-12s %-12s %-12s %-12s ", $1, $2, $3, $4, $5, $6, $7}' $h2load_out >> $5
+    awk 'NR > 6 {printf "%-8s %-8s %-8s %-12s %-12s %-12s %-12s ", $3, $4, $5, $6, $7, $8, $9}' $h2load_out >> $5
 
     # cpu-avg cpu-std mem-avg mem-std
     awk -f $SCRIPTS/nghttpd.awk -v start_time=$start_time -v end_time=$end_time $nghttpd_out >> $5
 
     # TODO: get consumption data if running on iotlab-node
+    echo "" >> $5
 
     echo "Finishing experiment with header_table_size=$1 window_bits=$2 max_frame_size=$3 max_header_list_size=$4" >&2
     cleanup_experiment
@@ -494,6 +495,6 @@ prepare_clients
 #run_experiment 4096 16 16384 4096 test.txt
 
 test_header_table_size
-test_window_bits
-test_max_frame_size
-test_max_header_list_size
+#test_window_bits
+#test_max_frame_size
+#test_max_header_list_size
