@@ -156,7 +156,6 @@ launch_clients() {
         # wait for all clients to finish
         for pid in ${client_pids[*]}
         do
-            echo "Waiting for $pid" >&2
             wait_for_pid $pid
         done
     else
@@ -237,7 +236,7 @@ run_experiment() {
     fi
 
     # total success failed req-time-min req-time-max req-time-avg req-time-std
-    awk 'NR > 6 {printf "%-8s %-8s %-8s %-12s %-12s %-12s %-12s ", $3, $4, $5, $6, $7, $8, $9}' $h2load_out >> $5
+    awk -f $SCRIPTS/h2load-totals.awk $h2load_out >> $5
 
     # cpu-avg cpu-std mem-avg mem-std
     awk -f $SCRIPTS/nghttpd.awk -v start_time=$start_time -v end_time=$end_time $nghttpd_out >> $5
@@ -253,7 +252,8 @@ headers() {
     # Print headers
     printf "%-20s %-20s " "start-time" "end-time"
     printf "%-17s %-11s %-14s %-20s " "header-table-size" "window-bits" "max-frame-size" "max-header-list-size"
-    printf "%-8s %-8s %-8s %-12s %-12s %-12s %-12s " "total" "success" "failed" "req-time-min" "req-time-max" "req-time-avg" "req-time-std"
+    printf "%-8s %-8s %-8s " "total" "success" "failed"
+    #printf "%-12s %-12s %-12s %-12s " "req-time-min" "req-time-max" "req-time-avg" "req-time-std"
     printf "%-10s %-10s %-10s %-10s\n" "cpu-avg" "cpu-std" "mem-avg" "mem-std"
 }
 
