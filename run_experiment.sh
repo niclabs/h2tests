@@ -261,7 +261,7 @@ headers() {
     printf "%-20s %-20s " "start-time" "end-time"
     printf "%-17s %-11s %-14s %-20s " "header-table-size" "window-bits" "max-frame-size" "max-header-list-size"
     printf "%-8s %-8s %-8s " "total" "success" "failed"
-    #printf "%-12s %-12s %-12s %-12s " "req-time-min" "req-time-max" "req-time-avg" "req-time-std"
+    printf "%-12s %-12s %-12s " "req-min-ms" "req-max-ms" "req-avg-ms" # "req-time-std"
     printf "%-10s %-10s %-10s %-10s\n" "cpu-avg" "cpu-std" "mem-avg" "mem-std"
 }
 
