@@ -201,6 +201,7 @@ run_experiment() {
     echo "" >> $h2load_out
     printf "%-20s %-20s " "start-time" "end-time" >> $h2load_out
     printf "%-8s %-8s %-8s %-12s %-12s %-12s %-12s " "total" "success" "failed" "req-time-min" "req-time-max" "req-time-avg" "req-time-std" >> $h2load_out
+    printf "%-12s" "hostname" >> $h2load_out
     printf "\n" >> $h2load_out
 
     # start client

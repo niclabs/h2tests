@@ -1,5 +1,9 @@
 BEGIN {
     row = sprintf("%-20s %-20s ", start_time, end_time)
+
+    # get hostname
+    "hostname" | getline hostname
+    gsub(/[ \n\t\r]+$/, "", hostname)
 }
 
 $0 ~ /^requests:/ {
@@ -17,5 +21,6 @@ $0 ~ /^time for request:/ {
 }
 
 END {
+    row = row sprintf("%-12s ", hostname)
     print row
 }
