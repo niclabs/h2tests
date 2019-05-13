@@ -41,8 +41,8 @@ FNR > 6 {
 
     min = str_to_millis($6)
     max = str_to_millis($7)
-    req_min = req_min < min ? req_min : min
-    req_max = req_max > max ? req_max : max
+    req_min = req_min - min < 0 ? req_min : min
+    req_max = req_max - max > 0 ? req_max : max
     req_avg_total += str_to_millis($8) * $3
 
     rows += 1
@@ -50,5 +50,5 @@ FNR > 6 {
 
 END {
     printf "%-8s %-8s %-8s ", total, success, failed
-    printf "%-8s %-8s %-8s ", req_min "ms", req_max "ms", req_avg_total / total "ms"
+    printf "%-10s %-10s %-10s ", req_min "ms", req_max "ms", req_avg_total / total "ms"
 }
