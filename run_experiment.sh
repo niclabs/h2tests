@@ -304,7 +304,7 @@ test_window_bits() {
     MAX_HEADER_LIST_SIZE=$MAX_HEADER_LIST_SIZE_DEFAULT
 
     OUT=$AGGREGATE/window_bits.txt
-    if [ -f $OUT ] &&
+    if [[ -f $OUT ]] &&
         window_bits_start_tmp=$(tail -n 1 $OUT | awk '{printf $4}') &&
         [[ -n "$window_bits_start_tmp" ]] && [[ $window_bits_start_tmp =~ ^[0-9]+$ ]]; then
         window_bits_start=$[window_bits_start_tmp + 1]
@@ -326,7 +326,7 @@ test_max_frame_size() {
     MAX_HEADER_LIST_SIZE=$MAX_HEADER_LIST_SIZE_DEFAULT
 
     OUT=$AGGREGATE/max_frame_size.txt
-    if [ -f $OUT ] &&
+    if [[ -f $OUT ]] &&
         max_frame_size_start_tmp=$(tail -n 1 $OUT | awk '{printf $5}') &&
         [[ -n "$max_frame_size_start_tmp" ]] && [[ $max_frame_size_start_tmp =~ ^[0-9]+$ ]]; then
         max_frame_size_start=$[max_frame_size_start_tmp + 1]
@@ -354,7 +354,7 @@ test_max_header_list_size() {
     MAX_FRAME_SIZE=$MAX_FRAME_SIZE_DEFAULT
 
     OUT=$AGGREGATE/max_header_list_size.txt
-    if [ -f $OUT ] &&
+    if [[ -f $OUT ]] &&
         max_header_list_size_tmp=$(tail -n 1 $OUT | awk '{printf $6}') &&
         [[ -n "$max_header_list_size_tmp" ]] && [[ $max_header_list_size_tmp =~ ^[0-9]+$ ]]; then
         max_header_list_size_start=$[max_header_list_size_tmp + 1]
