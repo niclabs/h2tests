@@ -74,13 +74,18 @@ tmp=/tmp/h2load-$PID.log
 # Execute server and store data
 start_time=$(date +%s.%N)
 run_h2load $* >> $tmp
-end_time=$(date +%s.%N)
 
-# Send summary to specified output
-if [ -n "$OUTPUT" ];then
-    awk -v start_time=$start_time -v end_time=$end_time  -f $SCRIPTS/h2load.awk $tmp >> $OUTPUT
-else
-    awk -v start_time=$start_time -v end_time=$end_time  -f $SCRIPTS/h2load.awk $tmp
-fi
+summary() {
+    end_time=$(date +%s.%N)
 
-rm $tmp
+    # Send summary to specified output
+    if [ -n "$OUTPUT" ];then
+        awk -v start_time=$start_time -v end_time=$end_time  -f $SCRIPTS/h2load.awk $tmp >> $OUTPUT
+    else
+        awk -v start_time=$start_time -v end_time=$end_time  -f $SCRIPTS/h2load.awk $tmp
+    fi
+
+    rm $tmp
+}
+
+trap summary SIGTERM EXIT
