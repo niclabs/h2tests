@@ -1,7 +1,7 @@
 # !/bin/bash
 
 SCRIPT=$0
-OPTS=`getopt -o s:c:a:p:n:h --long h2-clients:,h2-requests:,name:port:address:client:,server:,help -n 'parse-options' -- "$@"`
+OPTS=`getopt -o s:c:a:p:n:t:h --long h2-clients:,h2-requests:,name:port:address:client:,server:,timeout:,help -n 'parse-options' -- "$@"`
 
 if [ $? != 0 ] ; then echo "Failed parsing options."; exit 1 ; fi
 
@@ -31,6 +31,9 @@ NAME=$$
 H2LOAD_CLIENTS=96
 H2LOAD_REQUESTS=131072
 
+# Default timeout
+TIMEOUT=0
+
 while true; do
   case "$1" in
     -a | --address)  IPV6_ADDR=$2; shift; shift ;;
@@ -38,6 +41,7 @@ while true; do
     -n | --name)     NAME=$2; shift; shift ;;
     -s | --server)   IOTLAB_SERVER=$2; shift; shift ;;
     -c | --client)   IOTLAB_CLIENTS=$2; shift; shift ;;
+    -t | --timeout)  TIMEOUT=$2; shift; shift ;;
     --h2-clients)    H2LOAD_CLIENTS=$2; shift; shift ;;
     --h2-requests)   H2LOAD_REQUESTS=$2; shift; shift ;;
     -h | --help )    usage; exit 0 ;;
@@ -152,10 +156,9 @@ launch_clients() {
                 https://[$IPV6_ADDR]:$HTTP_PORT &
             client_pids+=($!)
         done
-        echo "Clients launched, waiting" >&2
-
+        echo "Clients launched, waiting $TIMEOUT(s)" >&2
         # wait for all clients to finish
-        wait_for_pids 30 ${client_pids[*]}
+        wait_for_pids $TIMEOUT ${client_pids[*]}
     else
         ./scripts/h2load.sh -o $out \
             --max-concurrent-streams=$MAX_CONCURRENT_STREAMS \
