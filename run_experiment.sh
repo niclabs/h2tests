@@ -543,8 +543,8 @@ finish() {
 trap finish SIGINT SIGTERM EXIT
 
 # prepend date in all output
-exec > >(sed "s/^/$(date -u +'%F %T') /")
-exec 2> >(sed "s/^/$(date -u +'%F %T') /" >&2)
+#exec > >(sed "s/^/$(date -u +'%F %T') /")
+#exec 2> >(sed "s/^/$(date -u +'%F %T') /" >&2)
 
 # Submit experiment if not running
 submit_experiment_if_needed
