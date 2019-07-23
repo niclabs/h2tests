@@ -155,10 +155,7 @@ launch_clients() {
         echo "Clients launched, waiting" >&2
 
         # wait for all clients to finish
-        for pid in ${client_pids[*]}
-        do
-            wait_for_pid $pid
-        done
+        wait_for_pids 30 ${client_pids[*]}
     else
         ./scripts/h2load.sh -o $out \
             --max-concurrent-streams=$MAX_CONCURRENT_STREAMS \
@@ -407,14 +404,46 @@ register_fd() {
     fds+=($1)
 }
 
-wait_for_pid() {
-    wait $1 2>/dev/null && return # try to wait normally
+wait_for_pids() {
+    local timeout=$1; shift
 
-    # otherwise monitor the process file
-    while [ -e /proc/$1 ]
+    local elapsed=0
+    local sleep=0.6
+    local expired=0
+    local running=1
+    while [ $running -eq 1 ] && [ $expired -eq 0 ]
     do
-        sleep .6
+        running=0
+        for pid in "$@"
+        do
+            if [ -e /proc/$pid ]; then
+                running=1
+            fi
+        done
+
+        # Sleep and update elapsed time
+        sleep $sleep
+        elapsed=$(echo "$elapsed $sleep" | awk '{print ($1 + $2)}')
+        if [ $timeout -gt 0 ]; then
+            expired=$(echo "$elapsed $timeout" | awk '{print ($1 > $2)}')
+        fi
     done
+
+    # Time has expired
+    if [ $expired -eq 1 ]; then
+        for pid in "$@"
+        do
+            if [ -e /proc/$pid ]; then
+                echo "Timeout reached for pid $1, terminating the process"
+                kill -- $pid > /dev/null 2>&1
+            fi
+        done
+
+        # return error
+        return 1
+    fi
+
+    return 0
 }
 
 redirect_left() {
