@@ -217,7 +217,7 @@ run_experiment() {
     elapsed=0
     while [ -e /proc/$server_pid ] && [ $elapsed -le 5 ] #wait at most 5 seconds
     do
-        echo 'q' > $server_in # just in case
+        echo 'q' >&$server_in # just in case
         sleep .6
         elapsed=$(echo - | awk "{print $elapsed + .6}")
     done
