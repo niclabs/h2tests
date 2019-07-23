@@ -71,6 +71,9 @@ $(ALLDIRS):
 $(SERVER_KEY) $(SERVER_CERT): | openssl
 	openssl req -new -newkey rsa:2048 -sha256 -days 365 -nodes -x509 -keyout $(SERVER_KEY) -out $(SERVER_CERT) -subj '/CN=$(IPV6_ADDR)'
 
+.PHONY: generate-keys
+generate-keys: $(SERVER_KEY) $(SERVER_CERT)
+
 $(CONTIKI): $(OPENLAB)
 	@echo "Get contiki for iot-lab"
 	$(Q) $(GIT) clone https://github.com/iot-lab/contiki.git $@
@@ -160,6 +163,7 @@ slip-bridge: $(BIN)/slip-bridge.native
 .PHONY: help
 help:
 	@echo "Provided targets"
+	@echo "- generate-keys: generate self-signed keys for running nghttp2"
 	@echo "- get-contiki: download contiki operating system source files"
 	@echo "- build-nghttp2: get and build nghttp2 1.34.0"
 	@echo "- build-slip-radio: build slip radio for target node"
