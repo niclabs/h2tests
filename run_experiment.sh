@@ -437,7 +437,7 @@ wait_for_pids() {
         for pid in "$@"
         do
             if [ -e /proc/$pid ]; then
-                echo "Timeout reached for pid $1, terminating the process"
+                echo "Timeout reached for pid $pid, terminating the process"
                 kill -- $pid > /dev/null 2>&1
             fi
         done
