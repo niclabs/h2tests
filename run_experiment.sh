@@ -142,7 +142,8 @@ launch_server() {
 }
 
 launch_clients() {
-    out=$5
+    local out=$5
+    local client_pids=()
     if [ -n "$IOTLAB_CLIENTS" ]; then
         # launch all clients
         for node in $(split , $IOTLAB_CLIENTS)
@@ -156,7 +157,7 @@ launch_clients() {
                 https://[$IPV6_ADDR]:$HTTP_PORT &
             client_pids+=($!)
         done
-        echo "Clients launched, waiting $TIMEOUT(s)" >&2
+        echo "Clients launched (${client_pids[*]}), waiting maximum of $TIMEOUT(s)" >&2
         # wait for all clients to finish
         wait_for_pids $TIMEOUT ${client_pids[*]}
     else
