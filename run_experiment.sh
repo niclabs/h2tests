@@ -251,9 +251,9 @@ run_experiment() {
     awk -f $SCRIPTS/nghttpd.awk -v start_time=$start_time -v end_time=$end_time $nghttpd_out >> $5
 
     # calculate consumption if running in iot-lab (untested)
-    #if [ -d $HOME/.iot-lab/$IOTLAB_ID/consumption ] && [ -n "$IOTLAB_SERVER" ]; then
-    #    awk -f $SCRIPTS/consumption.awk -v start_time=$start_time -v end_time=$end_time $HOME/.iot-lab/$IOTLAB_ID/consumption/a8_$IOTLAB_SERVER.oml >> $5
-    #fi
+    if [ -d $HOME/.iot-lab/$IOTLAB_ID/consumption ] && [ -n "$IOTLAB_SERVER" ]; then
+       awk -f $SCRIPTS/consumption.awk -v start_time=$start_time -v end_time=$end_time $HOME/.iot-lab/$IOTLAB_ID/consumption/a8_$IOTLAB_SERVER.oml >> $5
+    fi
 
     # print newline
     echo "" >> $5
@@ -269,11 +269,11 @@ headers() {
     printf "%-8s %-8s %-8s " "total" "success" "failed"
     printf "%-10s %-10s %-10s " "req-min-ms" "req-max-ms" "req-avg-ms" # "req-time-std"
     printf "%-10s %-10s %-10s %-10s" "cpu-avg" "cpu-std" "mem-avg" "mem-std"
-    #if [ -d $HOME/.iot-lab/$IOTLAB_ID/consumption ] && [ -n "$IOTLAB_SERVER" ]; then
-    #    printf "%-10s %-10s " "power-avg" "power-std"
-    #    printf "%-10s %-10s " "volt-avg" "volt-std"
-    #    printf "%-10s %-10s " "curr-avg" "curr-std"
-    #fi
+    if [ -d $HOME/.iot-lab/$IOTLAB_ID/consumption ] && [ -n "$IOTLAB_SERVER" ]; then
+        printf "%-10s %-10s " "power-avg" "power-std"
+        printf "%-10s %-10s " "volt-avg" "volt-std"
+        printf "%-10s %-10s " "curr-avg" "curr-std"
+    fi
     printf "\n"
 }
 
