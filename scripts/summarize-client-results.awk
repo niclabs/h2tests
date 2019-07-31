@@ -48,13 +48,15 @@ function zero(x, ival, aval, fraction)
     rows += 1
 }
 
-END { 
-    printf "%20s %20s ", start_time, end_time
-    printf "%-8s %-8s %-8s ", total, success, failed
-    printf "%-12s %-12s %-12s %-12s ", (req_time_min * 1000) "ms", (req_time_max * 1000) "ms", (req_time / rows) * 1000 "ms", sqrt(zero((req_time_sq / rows) - (req_time / rows) ^ 2)) * 1000 "ms"
+END {
+    if (rows > 0) {
+        printf "%20s %20s ", start_time, end_time
+        printf "%-8s %-8s %-8s ", total, success, failed
+        printf "%-12s %-12s %-12s %-12s ", (req_time_min * 1000) "ms", (req_time_max * 1000) "ms", (req_time / rows) * 1000 "ms", sqrt(zero((req_time_sq / rows) - (req_time / rows) ^ 2)) * 1000 "ms"
 
-    # get hostname
-    "hostname" | getline hostname
-    gsub(/[ \n\t\r]+$/, "", hostname)
-    printf "%-12s\n", hostname
+        # get hostname
+        "hostname" | getline hostname
+        gsub(/[ \n\t\r]+$/, "", hostname)
+        printf "%-12s\n", hostname
+    }
 }

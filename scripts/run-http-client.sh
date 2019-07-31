@@ -73,36 +73,52 @@ get_nghttp_cmd() {
         CMD="$CMD --max-header-list-size=$MAX_HEADER_LIST_SIZE"
     fi
 
-    echo $CMD -s --no-dep $*
+    echo $CMD -n -s --no-dep $*
 }
 
 run_nghttp() {
     local start_time=$(date +%s.%N)
     # run command and parse results
-    eval $* 2>/dev/null | awk -v start_time=$start_time -f $SCRIPTS/parse-nghttp-stats.awk # run the command
+    exec $* 2>/dev/null | awk -v start_time=$start_time -f $SCRIPTS/parse-nghttp-stats.awk # run the command
 }
 
-tmp=/tmp/nghttp-$PID.log
 
+run_n_nghttp() {
+    # Get the command the command
+    local n=$1; shift
+    local out=$1; shift
+    local cmd=$(get_nghttp_cmd $*)
+    
+    # Reset global variables
+    terminate_process=0
+    processed=0
+    while [ $processed -lt $n ] && [ $terminate_process -eq 0 ]
+    do
+        run_nghttp $cmd >> $out && processed=$((processed + 1))
+    done
+}
 
-summary() {
-    local failed=$((NUM_REQUESTS - performed))
+terminate() {
+    terminate_process=1
+}
+
+summarize_and_cleanup() {
+    local failed=$((NUM_REQUESTS - processed))
 
     # echo "start-time           end-time             total    success  failed   req-time-min req-time-max req-time-avg req-time-std hostname"
-    if [ -n "$OUTPUT" ];then
+    if [ -n "$OUTPUT" ]
+    then
         awk -v failed=$failed -f $SCRIPTS/summarize-client-results.awk $tmp >> $OUTPUT
     else
         awk -v failed=$failed -f $SCRIPTS/summarize-client-results.awk $tmp
     fi
+
+    # remove temporary file
+    rm $tmp
 }
 
-trap summary SIGTERM EXIT
+trap terminate SIGTERM SIGINT
+trap summarize_and_cleanup EXIT
 
-# Run the command
-nghttpd_cmd=$(get_nghttp_cmd $*)
-performed=0
-while [ $performed -lt $NUM_REQUESTS ]
-do
-    run_nghttp $nghttpd_cmd >> $tmp
-    performed=$((performed + 1))
-done
+tmp=/tmp/nghttp-$PID.log
+run_n_nghttp $NUM_REQUESTS $tmp $*
