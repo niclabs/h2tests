@@ -29,6 +29,21 @@ function zero(x, ival, aval, fraction)
    }
 }
 
+function time_to_str(secs) {
+    suffix = "s"
+    if (secs < 1.0) {
+        secs = secs * 1000
+        suffix = "ms"
+    }
+
+    if (secs < 1.0) {
+        secs = secs * 1000
+        suffix = "us"
+    }
+
+    return secs suffix
+}
+
 {
     if (rows == 0) {
         start_time = $1
@@ -52,7 +67,7 @@ END {
     if (rows > 0) {
         printf "%20s %20s ", start_time, end_time
         printf "%-8s %-8s %-8s ", total, success, failed
-        printf "%-12s %-12s %-12s %-12s ", (req_time_min * 1000) "ms", (req_time_max * 1000) "ms", (req_time / rows) * 1000 "ms", sqrt(zero((req_time_sq / rows) - (req_time / rows) ^ 2)) * 1000 "ms"
+        printf "%-12s %-12s %-12s %-12s ", time_to_str(req_time_min), time_to_str(req_time_max), time_to_str(req_time / rows), time_to_str(sqrt(zero((req_time_sq / rows) - (req_time / rows) ^ 2)))
 
         # get hostname
         "hostname" | getline hostname
