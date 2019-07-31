@@ -27,9 +27,9 @@ IPV6_ADDR=${IPV6_ADDR:-"2001:dead:beef::1"}
 HTTP_PORT=${HTTP_PORT:-80}
 NAME=$$
 
-# Number of clients for h2load
-H2LOAD_CLIENTS=96
-H2LOAD_REQUESTS=131072
+# Number of clients for http2
+HTTP2_CLIENTS=96
+HTTP2_REQUESTS=131072
 
 # Default timeout
 TIMEOUT=0
@@ -42,8 +42,8 @@ while true; do
     -s | --server)   IOTLAB_SERVER=$2; shift; shift ;;
     -c | --client)   IOTLAB_CLIENTS=$2; shift; shift ;;
     -t | --timeout)  TIMEOUT=$2; shift; shift ;;
-    --h2-clients)    H2LOAD_CLIENTS=$2; shift; shift ;;
-    --h2-requests)   H2LOAD_REQUESTS=$2; shift; shift ;;
+    --h2-clients)    HTTP2_CLIENTS=$2; shift; shift ;;
+    --h2-requests)   HTTP2_REQUESTS=$2; shift; shift ;;
     -h | --help )    usage; exit 0 ;;
     -- ) shift; break ;;
     * ) break ;;
@@ -91,14 +91,14 @@ MAX_HEADER_LIST_SIZE_RANGE=$(seq 1 4096)
 
 exec_in_a8() {
     node=$1; shift
-    cmd="cd ~/A8/h2tests && $(printf "%q " "$@")"
+    cmd="cd ~/A8/http2-parameters-for-iot && $(printf "%q " "$@")"
     echo "node-a8-$node: $cmd" >&2
     exec ssh -tt root@node-a8-$node $cmd
 }
 
 run_in_a8() {
     node=$1; shift
-    cmd="cd ~/A8/h2tests && $(printf "%q " "$@")"
+    cmd="cd ~/A8/http2-parameters-for-iot && $(printf "%q " "$@")"
     echo "node-a8-$node: $cmd" >&2
     ssh -tt root@node-a8-$node $cmd
 }
@@ -148,12 +148,12 @@ launch_clients() {
         # launch all clients
         for node in $(split , $IOTLAB_CLIENTS)
         do
-            run_in_a8 $node ./scripts/h2load.sh -o $out \
+            run_in_a8 $node ./scripts/run-http-client.sh -o $out \
                 --max-concurrent-streams=$MAX_CONCURRENT_STREAMS \
                 --header-table-size=$1 \
                 --window-bits=$2 \
                 --max-frame-size=$3 $(test -n "$4" && echo "--max-header-list-size=$4") \
-                -c $H2LOAD_CLIENTS -n $H2LOAD_REQUESTS \
+                -n $HTTP2_REQUESTS \
                 https://[$IPV6_ADDR]:$HTTP_PORT &
             client_pids+=($!)
         done
@@ -161,12 +161,12 @@ launch_clients() {
         # wait for all clients to finish
         wait_for_pids $TIMEOUT ${client_pids[*]}
     else
-        ./scripts/h2load.sh -o $out \
+        ./scripts/run-http-client.sh -o $out \
             --max-concurrent-streams=$MAX_CONCURRENT_STREAMS \
             --header-table-size=$1 \
             --window-bits=$2 \
             --max-frame-size=$3 $(test -n "$4" && echo "--max-header-list-size=$4") \
-            -c $H2LOAD_CLIENTS -n $H2LOAD_REQUESTS \
+            -n $HTTP2_REQUESTS \
             https://[$IPV6_ADDR]:$HTTP_PORT
     fi
 }
@@ -180,8 +180,8 @@ run_experiment() {
         SUFFIX="$1-$2-$3-$4"
     fi
 
-    nghttpd_out=$SERVER/nghttp-$SUFFIX.txt
-    h2load_out=$CLIENTS/h2load-$SUFFIX.txt
+    nghttpd_out=$SERVER/nghttpd-$SUFFIX.txt
+    client_out=$CLIENTS/nghttp-$SUFFIX.txt
 
     # Run nghttpd
     echo "Starting server" >&2
@@ -194,20 +194,20 @@ run_experiment() {
     sleep 2
     echo "Server started" >&2
 
-    # write h2load headers
-    echo "header_table_size: $1" > $h2load_out
-    echo "window_bits: $2" >> $h2load_out
-    echo "max_frame_size: $3" >> $h2load_out
-    echo "max_header_list_size: $4" >> $h2load_out
-    echo "" >> $h2load_out
-    printf "%-20s %-20s " "start-time" "end-time" >> $h2load_out
-    printf "%-8s %-8s %-8s %-12s %-12s %-12s %-12s " "total" "success" "failed" "req-time-min" "req-time-max" "req-time-avg" "req-time-std" >> $h2load_out
-    printf "%-12s" "hostname" >> $h2load_out
-    printf "\n" >> $h2load_out
+    # write client headers
+    echo "header_table_size: $1" > $client_out
+    echo "window_bits: $2" >> $client_out
+    echo "max_frame_size: $3" >> $client_out
+    echo "max_header_list_size: $4" >> $client_out
+    echo "" >> $client_out
+    printf "%-20s %-20s " "start-time" "end-time" >> $client_out
+    printf "%-8s %-8s %-8s %-12s %-12s %-12s %-12s " "total" "success" "failed" "req-time-min" "req-time-max" "req-time-avg" "req-time-std" >> $client_out
+    printf "%-12s" "hostname" >> $client_out
+    printf "\n" >> $client_out
 
     # start client
     echo "Launching clients" >&2
-    launch_clients $1 $2 $3 "$4" $h2load_out
+    launch_clients $1 $2 $3 "$4" $client_out
     echo "Clients finished, sending signal to server" >&2
 
     # kill server
@@ -245,7 +245,7 @@ run_experiment() {
     fi
 
     # total success failed req-time-min req-time-max req-time-avg req-time-std
-    awk -f $SCRIPTS/h2load-totals.awk $h2load_out >> $5
+    awk -f $SCRIPTS/client-totals.awk $client_out >> $5
 
     # cpu-avg cpu-std mem-avg mem-std
     awk -f $SCRIPTS/nghttpd.awk -v start_time=$start_time -v end_time=$end_time $nghttpd_out >> $5
@@ -516,7 +516,7 @@ prepare_clients() {
     # if not running client in iot-lab do not flash radio
     [ -n "$IOTLAB_CLIENTS" ] || return
     [ -n "$IOTLAB_SERVER" ] || return
-    [ $H2LOAD_CLIENTS -gt 1 ] && (echo "Number of clients running per node in iot-lab cannot be greater than 1" ; exit 1)
+    [ $HTTP2_CLIENTS -gt 1 ] && (echo "Number of clients running per node in iot-lab cannot be greater than 1" ; exit 1)
 
     for node in $(split , $IOTLAB_CLIENTS)
     do
