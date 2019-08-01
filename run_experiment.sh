@@ -245,7 +245,7 @@ run_experiment() {
     fi
 
     # total success failed req-time-min req-time-max req-time-avg req-time-std
-    awk -f $SCRIPTS/client-totals.awk $client_out >> $5
+    awk -f $SCRIPTS/summarize-client-totals.awk $client_out >> $5
 
     # cpu-avg cpu-std mem-avg mem-std
     awk -f $SCRIPTS/nghttpd.awk -v start_time=$start_time -v end_time=$end_time $nghttpd_out >> $5
