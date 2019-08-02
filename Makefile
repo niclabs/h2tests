@@ -9,7 +9,7 @@ $(foreach v, $(filter R_%,$(.VARIABLES)),$(eval $(subst R_,,$(v)=$($(v)))))
 # Configure iot-lab experiment parameters
 IOTLAB_SITE ?= grenoble
 IOTLAB_ARCHI ?= a8:at86rf231
-IOTLAB_DURATION ?= 600
+IOTLAB_DURATION ?= 720
 IOTLAB_SERVER_NODE ?= 1
 IOTLAB_CLIENT_NODES ?= 2
 IOTLAB_RESOURCES ?= $(IOTLAB_SERVER_NODE)+$(IOTLAB_CLIENT_NODES)
