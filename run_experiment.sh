@@ -144,6 +144,18 @@ launch_server() {
 launch_clients() {
     local out=$5
     local client_pids=()
+    
+    # write client headers
+    echo "header_table_size: $1" > $out
+    echo "window_bits: $2" >> $out
+    echo "max_frame_size: $3" >> $out
+    echo "max_header_list_size: $4" >> $out
+    echo "" >> $client_out
+    printf "%-20s %-20s " "start-time" "end-time" >> $out
+    printf "%-8s %-8s %-8s %-12s %-12s %-12s %-12s " "total" "success" "failed" "req-time-min" "req-time-max" "req-time-avg" "req-time-std" >> $out
+    printf "%-12s" "hostname" >> $out
+    printf "\n" >> $out
+
     if [ -n "$IOTLAB_CLIENTS" ]; then
         # launch all clients
         for node in $(split , $IOTLAB_CLIENTS)
@@ -194,17 +206,7 @@ run_experiment() {
     sleep 2
     echo "Server started" >&2
 
-    # write client headers
-    echo "header_table_size: $1" > $client_out
-    echo "window_bits: $2" >> $client_out
-    echo "max_frame_size: $3" >> $client_out
-    echo "max_header_list_size: $4" >> $client_out
-    echo "" >> $client_out
-    printf "%-20s %-20s " "start-time" "end-time" >> $client_out
-    printf "%-8s %-8s %-8s %-12s %-12s %-12s %-12s " "total" "success" "failed" "req-time-min" "req-time-max" "req-time-avg" "req-time-std" >> $client_out
-    printf "%-12s" "hostname" >> $client_out
-    printf "\n" >> $client_out
-
+    
     # start client
     echo "Launching clients" >&2
     launch_clients $1 $2 $3 "$4" $client_out
