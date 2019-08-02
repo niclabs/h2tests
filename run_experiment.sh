@@ -215,12 +215,14 @@ run_experiment() {
 
     # wait for the process to finish
     echo -n "Waiting for server to finish ... " >&2
-    elapsed=0
-    while [ -e /proc/$server_pid ] && [ $elapsed -le 5 ] #wait at most 5 seconds
+    local elapsed=0
+    local expired=0
+    while [ -e /proc/$server_pid ] && [ $expired -eq 0 ] #wait at most 5 seconds
     do
         echo 'q' >&$server_in # just in case
         sleep .6
         elapsed=$(echo - | awk "{print $elapsed + .6}")
+        expired=$(echo "$elapsed 5" | awk '{print ($1 > $2)}')
     done
 
     # kill processes
