@@ -103,7 +103,7 @@ $(NGHTTP2)/configure: | patch
 $(NGHTTP2)/Makefile: $(NGHTTP2)/configure
 	@echo "Configure nghttp2"
 	$(Q)cd $(NGHTTP2) && \
-		./configure --prefix=$(BIN) --bindir=$(BIN) --mandir=/tmp --docdir=/tmp --enable-app --disable-hpack-tools --disable-examples --disable-python-bindings
+		./configure --prefix=$(BIN) --bindir=$(BIN) --mandir=/tmp --docdir=/tmp --enable-app --disable-hpack-tools --disable-examples --disable-python-bindings --disable-threads
 
 # Build nghttp2 tools
 $(BIN)/nghttpd $(BIN)/h2load: $(NGHTTP2)/Makefile | $(BIN)
